@@ -31,10 +31,17 @@ public abstract class TemporalTypedEntity<T> {
 
     private long timestamp;
 
+    //The following field is used for MVCC and should not be exposed to clients
+    @JsonIgnore
     private long version = Versions.MATCH_ANY;
 
     public TemporalTypedEntity(String id) {
         this.id = id;
+    }
+
+    public TemporalTypedEntity(String id, long timestamp) {
+        this.id = id;
+        this.timestamp = timestamp;
     }
 
     abstract protected TypeToken<T> token();

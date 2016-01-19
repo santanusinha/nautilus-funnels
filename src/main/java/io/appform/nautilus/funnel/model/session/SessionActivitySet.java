@@ -18,33 +18,34 @@ package io.appform.nautilus.funnel.model.session;
 
 import io.appform.nautilus.funnel.utils.AttributeUtils;
 import io.dropwizard.validation.ValidationMethod;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.ClassUtils;
-import org.hibernate.validator.constraints.NotEmpty;
+import lombok.*;
 
-import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Model class to represent a state change activity.
+ * A set of activities done in this session. The specified activities will be added to existing session, if both
+ * {@link SessionActivitySet#sessionId} and {@link SessionActivitySet#sessionStartTime} are same as provided before.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SessionActivity {
-    private long timestamp;
+public class SessionActivitySet {
 
-    @NotNull
-    @NotEmpty
-    private String state;
+    /**
+     * Session ID for the session.
+     */
+    private String sessionId;
+
+    private long sessionStartTime;
 
     private Map<String, Object> attributes;
 
-    @ValidationMethod(message = "Only primitive types and strings can be passed as attributes")
+    @Singular
+    private List<SessionActivity> activities;
+
+    @ValidationMethod
     public boolean validateAttributes() {
         return AttributeUtils.isValid(attributes);
     }

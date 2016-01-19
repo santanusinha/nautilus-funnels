@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.model.core;
+package io.appform.nautilus.funnel.resources;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * Tenant specific data.
+ * Generic API response
  */
-
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class Tenant {
-    private String id;
-    private String name;
-    private int retentionPeriod;
+public class ApiResponse {
+    private boolean error;
+    private Object data;
 }

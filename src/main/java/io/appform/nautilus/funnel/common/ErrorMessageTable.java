@@ -19,7 +19,10 @@ package io.appform.nautilus.funnel.common;
 public class ErrorMessageTable {
     public enum ErrorCode {
         ENTITY_SAVE_ERROR(1001, "Error saving entity. ID=%s, Type=%s"),
+        ENTITY_SAVE_UNHANDLED_ERROR(1001, "Error saving entity. ID=%s."),
+        ENTITY_SAVE_VERSION_ERROR(1001, "Error saving entity due to version conflict after {} retries. ID=%s."),
         ENTITY_BULK_SAVE_ERROR(1002, "Error saving entities."),
+        ENTITY_GET_ERROR(1003, "Error getting entity. ID=%s, Type=%s"),
 
         INVALID_TIME_WINDOW(1002, "An invalid time window was sent in the request: %s"),
 

@@ -30,4 +30,9 @@ public class TypeUtils {
     public static <T> String typeName(TypeToken<T> type) {
         return type.getRawType().getSimpleName().toLowerCase();
     }
+
+    public static String typeName(Class<?> clazz) {
+        return clazz.getSimpleName().toLowerCase();
+    }
+
 }

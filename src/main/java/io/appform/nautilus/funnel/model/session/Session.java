@@ -17,21 +17,31 @@
 package io.appform.nautilus.funnel.model.session;
 
 import com.google.common.reflect.TypeToken;
-
 import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
+@NoArgsConstructor
 public class Session extends TemporalTypedEntity<Session> {
     @NotNull
     private String path;
     private String normalizedPath;
     private Map<String, Object> attributes;
+
+    @Builder
+    public Session(String id, long timestamp, String path, String normalizedPath, Map<String, Object> attributes) {
+        super(id, timestamp);
+        this.path = path;
+        this.normalizedPath = normalizedPath;
+        this.attributes = attributes;
+    }
 
     @Override
     protected TypeToken<Session> token() {

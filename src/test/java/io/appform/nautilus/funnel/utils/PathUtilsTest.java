@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test to for {@link PathUtils#normalise(List)}
@@ -34,8 +34,10 @@ public class PathUtilsTest {
 
     @Test
     public void testNormalise() throws Exception {
-        List<Integer> input = ImmutableList.of(1, 22, 31, 49, 22, 22, 31, 49, 31, 49, 2, 25, 1, 2, 3, 4, 2, 2, 3, 4, 3, 4, 2, 1, 2, 3, 4, 2, 2, 3, 4, 3, 4, 2);
-        List<Integer> output = PathUtils.normalise(new ArrayList<>(input));
+        List<String> input = ImmutableList.of("1", "22", "31", "49", "22", "22", "31", "49", "31", "49", "2", "25",
+                                            "1", "2", "3", "4", "2", "2", "3", "4", "3", "4", "2", "1", "2", "3", "4",
+                                            "2", "2", "3", "4", "3", "4", "2");
+        List<String> output = PathUtils.normalise(new ArrayList<String>(input));
         log.debug("INPUT: " + Joiner.on("->").join(input));
         log.debug("OUTPUT: " + Joiner.on("->").join(output));
         assertEquals("1->22->31->49->2->25->1->2->3->4->2", Joiner.on("->").join(output));

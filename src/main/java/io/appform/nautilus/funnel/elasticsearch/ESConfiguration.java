@@ -16,16 +16,24 @@
 
 package io.appform.nautilus.funnel.elasticsearch;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Vector;
 
 @Data
 public class ESConfiguration {
     @NotNull
     @NotEmpty
     private String cluster;
+
+    @Valid
+    @NotNull
+    @JsonProperty
+    private Vector<String> hosts;
 
     private boolean embedded = true;
 

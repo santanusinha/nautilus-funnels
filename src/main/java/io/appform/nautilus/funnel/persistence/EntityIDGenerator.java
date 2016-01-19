@@ -17,6 +17,7 @@
 package io.appform.nautilus.funnel.persistence;
 
 import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
+import org.elasticsearch.common.Strings;
 
 import java.util.UUID;
 
@@ -26,6 +27,8 @@ import java.util.UUID;
 //TODO::VISITOR
 public class EntityIDGenerator {
     public String id(TemporalTypedEntity entity) {
-        return UUID.randomUUID().toString();
+        return Strings.isNullOrEmpty(entity.getId())
+                ? UUID.randomUUID().toString()
+                : entity.getId();
     }
 }

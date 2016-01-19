@@ -17,11 +17,12 @@
 package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
-
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.model.session.Session;
-import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
+import io.appform.nautilus.funnel.model.session.StateTransition;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -33,23 +34,27 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 /**
  * Elasticsearch utilities
  */
+@Slf4j
 public class ESUtils {
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("dd-M-yyyy");
-    private static final String TABLENAME_PREFIX = "nautilus-funnels-*";
+    private static final String TABLENAME_PREFIX = "nautilus-funnels";
     private static final Object TABLENAME_POSTFIX = "tenant";
     private static final String META_INDEX = "nautilus-meta";
 
     public static void createMapping(ESConfiguration esConfiguration, ESConnection connection) throws Exception {
-        connection.client()
+        PutIndexTemplateResponse response = connection.client()
                 .admin()
                 .indices()
-                .putTemplate(
-                    new PutIndexTemplateRequest("core")
-                        .template("nautilus-funnel-*")
-                        .mapping(name(Session.class), mapping(Session.class))
-                        .mapping("graphtransition", mapping("graphtransition", "sessionpath")))
+                .preparePutTemplate("core")
+                .setTemplate(TABLENAME_PREFIX + "*")
+                .setOrder(0)
+                .addMapping(TypeUtils.typeName(Session.class), mapping(Session.class))
+                .addMapping(TypeUtils.typeName(StateTransition.class), mapping(StateTransition.class, Session.class))
+                .setCreate(false)
+                .execute()
                 .actionGet();
+        log.info("Create mapping: {}", response.isAcknowledged());
     }
 
     public static String getMetaIndexName() {
@@ -62,6 +67,12 @@ public class ESUtils {
         return String.format("%s-%s-%s-%s", ESUtils.TABLENAME_PREFIX, tenant,
                 ESUtils.TABLENAME_POSTFIX, datePostfix);
     }
+
+    public static String getAllIndices(final String table) {
+        return String.format("%s-%s-%s-*",
+                ESUtils.TABLENAME_PREFIX, table, ESUtils.TABLENAME_POSTFIX);
+    }
+
 
     public static String sanitizeFieldForAggregation(String field){
         return field.replaceAll(Constants.FIELD_REPLACEMENT_REGEX, Constants.FIELD_REPLACEMENT_VALUE);
@@ -94,7 +105,7 @@ public class ESUtils {
     }*/
 
     private static XContentBuilder mapping(final Class<?> clazz) throws IOException {
-        return mapping(name(clazz));
+        return mapping(TypeUtils.typeName(clazz));
     }
 
     private static XContentBuilder mapping(final String type) throws IOException {
@@ -102,24 +113,30 @@ public class ESUtils {
     }
 
     private static XContentBuilder mapping(final Class<?> type, final Class<?> parent) throws IOException {
-        return mapping(name(type), name(parent));
+        return mapping(TypeUtils.typeName(type), TypeUtils.typeName(parent));
     }
 
     private static XContentBuilder mapping(final String type, final String parent) throws IOException {
         XContentBuilder builder = jsonBuilder()
                 .startObject()
-                    .field("_source")
-                        .startObject()
-                            .field("enabled", true)
-                        .endObject()
-                    .field("_all")
-                        .startObject()
-                            .field("enabled", false)
-                        .endObject()
-                    .field("_timestamp")
-                        .startObject()
-                            .field("enabled", true)
-                        .endObject();
+                .field(type)
+                    .startObject()
+                        /*.field("_source")
+                            .startObject()
+                                .field("enabled", true)
+                            .endObject()*/
+                        .field("_all")
+                            .startObject()
+                                .field("enabled", false)
+                            .endObject()
+                        /*.field("_timestamp")
+                            .startObject()
+                                .field("enabled", true)
+                                .field("store", false)
+                                .field("index", "not_analyzed")
+                                .field("doc_values", true)
+                            .endObject()*/;
+                        //.array("dynamic_date_formats", "epoch_millis");
         if(!Strings.isNullOrEmpty(parent)) {
             builder
                 .field("_parent")
@@ -128,56 +145,53 @@ public class ESUtils {
                 .endObject();
         }
         builder
-                    .field("dynamic_templates")
-                        .startArray()
+                .field("dynamic_templates")
+                    .startArray()
+                        .startObject()
+                            .field("template_timestamp")
                             .startObject()
-                                .field("template_timestamp")
+                                .field("match", "timestamp")
+                                .field("mapping")
                                 .startObject()
-                                    .field("match", "timestamp")
+                                    .field("store", false)
+                                    .field("index", "not_analyzed")
+                                    .field("type", "date")
+                                    .field("doc_values", true)
+                                    .field("format", "epoch_millis")
+                                .endObject()
+                            .endObject()
+                        .endObject()
+                        .startObject()
+                            .field("template_location")
+                                .startObject()
+                                    .field("match", "location")
                                     .field("mapping")
                                     .startObject()
                                         .field("store", false)
                                         .field("index", "not_analyzed")
-                                        .field("type", "date")
+                                        .field("type", "geo_point")
+                                        .field("lat_lon", true)
                                         .field("doc_values", true)
                                     .endObject()
                                 .endObject()
-                            .endObject()
+                        .endObject()
+                        .startObject()
+                            .field("template_no_store")
                             .startObject()
-                                .field("template_location")
+                                .field("match_mapping_type", "*")
+                                .field("mapping")
                                     .startObject()
-                                        .field("match", "location")
-                                        .field("mapping")
-                                        .startObject()
-                                            .field("store", false)
-                                            .field("index", "not_analyzed")
-                                            .field("type", "geo_point")
-                                            .field("lat_lon", true)
-                                            .field("doc_values", true)
-                                        .endObject()
+                                        .field("store", false)
+                                        .field("index", "not_analyzed")
+                                        .field("doc_values", true)
                                     .endObject()
                             .endObject()
-                            .startObject()
-                                .field("template_no_store")
-                                .startObject()
-                                    //.field("match_mapping_type", "date|boolean|double|long|integer")
-                                    .field("match_pattern", "regex")
-                                    .field("path_match", ".*")
-                                    .field("mapping")
-                                        .startObject()
-                                            .field("store", false)
-                                            .field("index", "not_analyzed")
-                                            .field("doc_values", true)
-                                        .endObject()
-                                .endObject()
-                            .endObject()
-                        .endArray()
-                .endObject();
+                        .endObject()
+                    .endArray()
+            .endObject()
+        .endObject();
         return builder;
     }
 
-    private static String name(Class<?> clazz) {
-        return clazz.getName().toLowerCase();
-    }
 
 }

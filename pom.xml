@@ -14,6 +14,8 @@
         <lombok.version>1.16.6</lombok.version>
         <lombok.maven.version>1.16.6.1</lombok.maven.version>
         <elasticsearch.version>2.1.1</elasticsearch.version>
+        <guava.retrying.version>2.0.0</guava.retrying.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencies>
@@ -34,6 +36,11 @@
             <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.github.rholder</groupId>
+            <artifactId>guava-retrying</artifactId>
+            <version>${guava.retrying.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-testing</artifactId>
             <version>${dropwizard.version}</version>
@@ -42,7 +49,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -99,7 +106,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.appform.nautilus.server.Application</mainClass>
+                                    <mainClass>io.appform.nautilus.funnel.FunnelServerApp</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

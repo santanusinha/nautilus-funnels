@@ -19,33 +19,33 @@ package io.appform.nautilus.funnel.persistence;
 import io.appform.nautilus.funnel.common.NautilusException;
 import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
 
-import javax.ws.rs.client.Entity;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Storage for {@link TemporalTypedEntity}
  */
 public interface TemporalTypedEntityStore {
-    default <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, TemporalTypedEntity<T> entity) throws NautilusException {
+    default <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, T entity) throws NautilusException {
         return store(tenantName, entity, null);
     }
 
-    default <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, TemporalTypedEntity<T> entity, String parent) throws NautilusException {
+    default <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, T entity, String parent) throws NautilusException {
         return store(tenantName, entity, parent, false);
     }
 
-    <T extends TemporalTypedEntity<T>> boolean store(String tenantName, TemporalTypedEntity<T> entity, String parent, boolean createOnly) throws NautilusException;
+    <T extends TemporalTypedEntity<T>> boolean store(String tenantName, T entity, String parent, boolean createOnly) throws NautilusException;
 
-    default <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<TemporalTypedEntity<T>> entities) throws NautilusException {
+    default <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<T> entities) throws NautilusException {
         return store(tenantName, entities, null);
     }
 
-    default <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<TemporalTypedEntity<T>> entities, String parent) throws NautilusException {
+    default <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<T> entities, String parent) throws NautilusException {
         return store(tenantName, entities, parent, true);
     }
 
 
-    <T extends TemporalTypedEntity<T>> List<Boolean> store(String tenantName, List<TemporalTypedEntity<T>> entities, String parent, boolean createOnly) throws NautilusException;
+    <T extends TemporalTypedEntity<T>> List<Boolean> store(String tenantName, List<T> entities, String parent, boolean createOnly) throws NautilusException;
 
-    <T extends TemporalTypedEntity<T>> Entity<T> get(String id, Class<T> clazz) throws NautilusException;
+    <T extends TemporalTypedEntity<T>> Optional<T> get(String tenantName, String id, long timestamp, Class<T> clazz) throws NautilusException;
 }

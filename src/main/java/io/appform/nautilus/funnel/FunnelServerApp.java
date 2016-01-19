@@ -16,6 +16,11 @@
 
 package io.appform.nautilus.funnel;
 
+import io.appform.nautilus.funnel.elasticsearch.ESConnection;
+import io.appform.nautilus.funnel.persistence.impl.ESTemporalTypedEntityStore;
+import io.appform.nautilus.funnel.resources.ActivityResource;
+import io.appform.nautilus.funnel.sessionmanagement.SessionActivityHandler;
+import io.appform.nautilus.funnel.tasks.Initialize;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 
@@ -25,6 +30,18 @@ import io.dropwizard.setup.Environment;
 public class FunnelServerApp extends Application<FunnelServerConfiguration> {
     @Override
     public void run(FunnelServerConfiguration funnelServerConfiguration, Environment environment) throws Exception {
+        ESConnection esConnection = new ESConnection(funnelServerConfiguration.getElasticsearch());
+        environment.lifecycle().manage(esConnection);
 
+        SessionActivityHandler sessionActivityHandler = new SessionActivityHandler(new ESTemporalTypedEntityStore(environment.getObjectMapper(), funnelServerConfiguration.getElasticsearch(), esConnection));
+
+        environment.jersey().register(new ActivityResource(sessionActivityHandler));
+
+        environment.admin().addTask(new Initialize(funnelServerConfiguration.getElasticsearch(), esConnection));
+    }
+
+    public static void main(String[] args) throws Exception {
+        FunnelServerApp funnelServerApp = new FunnelServerApp();
+        funnelServerApp.run(args);
     }
 }

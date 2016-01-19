@@ -4,7 +4,12 @@ import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.Node;
+
+import java.net.InetAddress;
 
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
@@ -12,6 +17,7 @@ import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 public class ESConnection implements Managed {
 
     private Node node;
+    private Client client = null;
     private ESConfiguration configuration;
 
     @VisibleForTesting
@@ -29,17 +35,22 @@ public class ESConnection implements Managed {
         if(configuration.isEmbedded()) {
             node = nodeBuilder()
                     .build();
+            node.start();
             log.info("Elasticsearch started in embedded mode...");
         }
         else {
-            node = nodeBuilder()
-                    .client(true)
-                    .clusterName(configuration.getCluster())
-                    .data(false)
-                    .build();
+            Settings settings = Settings.builder()
+                    .put("cluster.name", configuration.getCluster()).build();
+
+            TransportClient esClient = TransportClient.builder().settings(settings).build();
+            for (String host : configuration.getHosts()) {
+                esClient.addTransportAddress(
+                        new InetSocketTransportAddress(InetAddress.getByName(host), 9300));
+                log.info(String.format("Added Elasticsearch Node : %s", host));
+            }
+            client = esClient;
             log.info("Elasticsearch connected to in cluster mode...");
         }
-        node.start();
     }
 
     @Override
@@ -51,6 +62,9 @@ public class ESConnection implements Managed {
     }
 
     public Client client() {
+        if(null != client) {
+            return client;
+        }
         return node.client();
     }
 }

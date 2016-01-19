@@ -32,16 +32,17 @@ import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetRequestBuilder;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.index.VersionType;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
+import org.elasticsearch.index.engine.VersionConflictEngineException;
 
-import javax.ws.rs.client.Entity;
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
@@ -58,7 +59,7 @@ public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
     }
 
     @Override
-    public <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, TemporalTypedEntity<T> entity, String parent, boolean createOnly) throws NautilusException {
+    public <T extends TemporalTypedEntity<T>> boolean store(final String tenantName, T entity, String parent, boolean createOnly) throws NautilusException {
         //esConnection.client().
         String id = null;
         final String type = TypeUtils.typeName(entity);
@@ -77,6 +78,8 @@ public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
                     .actionGet();
             return (response.getVersion() > 0);
         } catch (DocumentAlreadyExistsException e) {
+            return true;
+        } catch (VersionConflictEngineException e) {
             return false;
         } catch (Exception e) {
             log.error(ErrorMessageTable.errorMessage(ErrorMessageTable.ErrorCode.ENTITY_SAVE_ERROR,
@@ -87,7 +90,7 @@ public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
     }
 
     @Override
-    public <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<TemporalTypedEntity<T>> entities, String parent, boolean createOnly) throws NautilusException {
+    public <T extends TemporalTypedEntity<T>> List<Boolean> store(final String tenantName, List<T> entities, String parent, boolean createOnly) throws NautilusException {
         //esConnection.client().
         try {
             BulkRequestBuilder bulkBuilder = esConnection.client()
@@ -114,7 +117,7 @@ public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
                     .actionGet();
             List<Boolean> responseEntities = Lists.newArrayList();
             for(BulkItemResponse item : response.getItems()) {
-                responseEntities.add(item.isFailed());
+                responseEntities.add(!item.isFailed());
                 if(item.isFailed()) {
                     log.warn("Indexing failed: [{}] {}", item.getFailure().getId(), item.getFailureMessage());
                 }
@@ -122,14 +125,32 @@ public class ESTemporalTypedEntityStore implements TemporalTypedEntityStore {
             return responseEntities;
         } catch (Exception e) {
             log.error(ErrorMessageTable.errorMessage(ErrorMessageTable.ErrorCode.ENTITY_BULK_SAVE_ERROR));
-            throw new NautilusException(e, ErrorMessageTable.ErrorCode.ENTITY_SAVE_ERROR);
+            throw new NautilusException(e, ErrorMessageTable.ErrorCode.ENTITY_BULK_SAVE_ERROR);
         }
     }
 
     @Override
-    public <T extends TemporalTypedEntity<T>> Entity<T> get(String id, Class<T> clazz) throws NautilusException {
-//        return esConnection.client().get(new GetRequest(ESUtils));
-        return null;
+    public <T extends TemporalTypedEntity<T>> Optional<T> get(final String tenantName, final String id, long timestamp, Class<T> clazz) throws NautilusException {
+        T result = null;
+        try {
+            GetResponse response = esConnection.client().prepareGet()
+                    .setIndex(ESUtils.getCurrentIndex(tenantName, timestamp))
+                    .setId(id)
+                    .setType(TypeUtils.typeName(clazz))
+                    .execute()
+                    .actionGet();
+            if(!response.isExists()) {
+                return Optional.empty();
+            }
+            result = mapper.readValue(response.getSourceAsBytes(), clazz);
+            result.setVersion(response.getVersion());
+            return Optional.of(result);
+        } catch (IndexNotFoundException e) {
+            log.warn("Index was not found: {}", e.getMessage());
+            return Optional.empty();
+        } catch (IOException e) {
+            throw new NautilusException(e, ErrorMessageTable.ErrorCode.ENTITY_GET_ERROR, id, TypeUtils.typeName(clazz));
+        }
     }
 
     /*

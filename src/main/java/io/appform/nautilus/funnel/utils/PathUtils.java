@@ -16,6 +16,7 @@
 
 package io.appform.nautilus.funnel.utils;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -29,16 +30,16 @@ import java.util.stream.Collectors;
  */
 public class PathUtils {
 
-    public static List<Integer> normalise(final List<Integer> inputPath) {
-        List<Integer> path = new ArrayList<>(inputPath);
+    public static List<String> normalise(final List<String> inputPath) {
+        List<String> path = new ArrayList<>(inputPath);
         //Remove self loops
         for (int i = 1; i < path.size(); i++) {
             if (Objects.equals(path.get(i), path.get(i - 1))) {
-                path.set(i, -1);
+                path.set(i, null);
             }
         }
-        List<Integer> dedupList = path.parallelStream()
-                .filter((Integer i) -> i >= 0)
+        List<String> dedupList = path.parallelStream()
+                .filter(listItem -> !Strings.isNullOrEmpty(listItem))
                 .collect(Collectors.toCollection(ArrayList::new));
         //Sequence can't be greater than half of the path
         int seqSize = dedupList.size()/2;
@@ -50,7 +51,7 @@ public class PathUtils {
             for(int i = 0; i < dedupList.size() - seqSize; i++) {
 
                 //Create the sequence to search for
-                final List<Integer> subList = dedupList.subList(i, i + seqSize);
+                final List<String> subList = dedupList.subList(i, i + seqSize);
                 boolean duplicateSeqFound = true;
                 //System.out.println("CHECKING: " + Joiner.on("->").join(subList));
                 if(dedupList.size() < i + 2 * seqSize ) {
@@ -69,7 +70,7 @@ public class PathUtils {
                 if(duplicateSeqFound) {
                     //Set the bits
                     bitSet.set(i, i + seqSize);
-                    List<Integer> tmpList = Lists.newArrayListWithCapacity(dedupList.size() - seqSize);
+                    List<String> tmpList = Lists.newArrayListWithCapacity(dedupList.size() - seqSize);
                     for (int ii = 0; ii < dedupList.size(); ii++) {
                         if (!bitSet.get(ii)) {
                             //Add not new path only if bit is not set
