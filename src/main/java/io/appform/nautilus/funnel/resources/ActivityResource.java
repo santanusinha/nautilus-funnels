@@ -16,9 +16,7 @@
 
 package io.appform.nautilus.funnel.resources;
 
-import com.google.common.collect.ImmutableList;
 import io.appform.nautilus.funnel.common.NautilusException;
-import io.appform.nautilus.funnel.model.session.SessionActivity;
 import io.appform.nautilus.funnel.model.session.SessionActivitySet;
 import io.appform.nautilus.funnel.sessionmanagement.SessionActivityHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +25,6 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by santanu.s on 14/01/16.
