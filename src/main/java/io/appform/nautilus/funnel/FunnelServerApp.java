@@ -17,12 +17,20 @@
 package io.appform.nautilus.funnel;
 
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
+import io.appform.nautilus.funnel.graphmanagement.ESEdgeBasedGraphBuilder;
+import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.persistence.impl.ESTemporalTypedEntityStore;
 import io.appform.nautilus.funnel.resources.ActivityResource;
+import io.appform.nautilus.funnel.resources.GraphResource;
 import io.appform.nautilus.funnel.sessionmanagement.SessionActivityHandler;
 import io.appform.nautilus.funnel.tasks.Initialize;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import java.util.EnumSet;
 
 /**
  * Main application.
@@ -37,9 +45,26 @@ public class FunnelServerApp extends Application<FunnelServerConfiguration> {
 
         environment.jersey().register(new ActivityResource(sessionActivityHandler));
 
+        Context context = Context.builder()
+                                .esConfiguration(funnelServerConfiguration.getElasticsearch())
+                                .esConnection(esConnection)
+                                .build();
+
+        environment.jersey().register(new GraphResource(context, new ESEdgeBasedGraphBuilder()));
+
         environment.admin().addTask(new Initialize(funnelServerConfiguration.getElasticsearch(), esConnection));
+        configureCors(environment);
     }
 
+    private void configureCors(Environment environment) {
+        FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,OPTIONS");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
+        filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
+        filter.setInitParameter("allowCredentials", "true");
+    }
     public static void main(String[] args) throws Exception {
         FunnelServerApp funnelServerApp = new FunnelServerApp();
         funnelServerApp.run(args);
