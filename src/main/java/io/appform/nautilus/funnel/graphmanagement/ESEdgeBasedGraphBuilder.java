@@ -28,10 +28,12 @@ import io.appform.nautilus.funnel.model.session.FlatPath;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.model.support.Context;
+import io.appform.nautilus.funnel.utils.Constants;
 import io.appform.nautilus.funnel.utils.ESUtils;
 import io.appform.nautilus.funnel.utils.TypeUtils;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -69,6 +71,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                     .setTypes(TypeUtils.typeName(StateTransition.class))
                                     .setFetchSource(false)
                                     .setSize(0)
+                                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
                                     .addAggregation(AggregationBuilders
                                             .terms("from_nodes")
                                             .field("from")
@@ -76,10 +79,12 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                                     AggregationBuilders
                                                             .terms("to_nodes")
                                                             .field("to")
+                                                            .size(0)
                                                             .subAggregation(
                                                                     AggregationBuilders
                                                                         .terms("pathBreakup")
                                                                         .field("normalizedPath")
+                                                                        .size(0)
                                                             )
                                             )))
                     .add(
@@ -90,9 +95,12 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                     .setTypes(TypeUtils.typeName(Session.class))
                                     .setFetchSource(false)
                                     .setSize(0)
+                                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
                                     .addAggregation(AggregationBuilders
                                             .terms("paths")
-                                            .field("normalizedPath")))
+                                            .field("normalizedPath")
+                                            .size(0)
+                                    ))
                     .execute()
                     .actionGet();
 
@@ -140,7 +148,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                 for (Terms.Bucket buckets : terms.getBuckets()) {
                     final String flatPath = buckets.getKey().toString();
                     final long count = buckets.getDocCount();
-                    final String pathNodes[] = flatPath.split("->");
+                    final String pathNodes[] = flatPath.split(Constants.PATH_STATE_SEPARATOR);
                     flatPathListBuilder.add(FlatPath.builder().path(flatPath).count(count).build());
                     for (final String pathNode : pathNodes) {
                         if (!vertices.containsKey(pathNode)) {

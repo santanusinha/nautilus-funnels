@@ -94,6 +94,7 @@ public class SessionActivityHandler {
                 for(SessionActivity activity : activities) {
                     pathElements.add(activity.getState());
                     List<String> normalizedPathElements = PathUtils.normalise(pathElements);
+                    log.debug("Normalized path: {}:{}", session.getId(), normalizedPathElements);
                     newPath = Joiner.on(Constants.PATH_STATE_SEPARATOR).join(pathElements);
                     newNormalizedPath = Joiner.on(Constants.PATH_STATE_SEPARATOR).join(normalizedPathElements);
                     StateTransition transition = StateTransition.builder()
@@ -105,6 +106,7 @@ public class SessionActivityHandler {
                             .sessionId(activitySet.getSessionId())
                             .build();
                     transitions.add(transition);
+                    lastState = activity.getState();
                 }
                 session.setPath(newPath);
                 session.setNormalizedPath(newNormalizedPath);
