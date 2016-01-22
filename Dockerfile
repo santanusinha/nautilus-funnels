@@ -14,9 +14,8 @@ EXPOSE 8081
 
 VOLUME /var/log/entitystore
 
-ADD src/main/resources/elasticsearch.yml elasticsearch.yml
-ADD src/main/resources/dev-config.yml dev-config.yml
-ADD target/nautilus*.jar server.jar
+ADD config/docker/docker.yml dev-config.yml
+ADD target/nautilus-funnels*.jar server.jar
 
-CMD sh -c "java -jar -Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl -XX:+${GC_ALGO} -Xms${JAVA_PROCESS_MIN_HEAP} -Xmx${JAVA_PROCESS_MAX_HEAP} server.jar server ${CONFIG_ENV}-config.yml"
+CMD sh -c "java -jar -XX:+${GC_ALGO-UseG1GC} -Xms${JAVA_PROCESS_MIN_HEAP-1g} -Xmx${JAVA_PROCESS_MAX_HEAP-1g} server.jar server ${CONFIG_ENV-dev}-config.yml"
 

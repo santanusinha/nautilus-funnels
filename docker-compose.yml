@@ -19,13 +19,8 @@ nautilus:
   links:
    - elasticsearch
    # enviroment valiables
-  environment:
-   - SERVICE_NAME=nautilus
-   - SERVICE_ENV=stage
-   - SERVICE_NAMESPACE=olacabs
-   - HOST=localhost
-   - PORT_8080=8080
-   - GC_ALGO=UseG1GC
-   - JAVA_PROCESS_MIN_HEAP=1g
-   - JAVA_PROCESS_MAX_HEAP=1g
-   - CONFIG_ENV=dev
+#  environment:
+#   - GC_ALGO=UseG1GC
+#   - JAVA_PROCESS_MIN_HEAP=1g
+#   - JAVA_PROCESS_MAX_HEAP=1g
+#   - CONFIG_ENV=dev

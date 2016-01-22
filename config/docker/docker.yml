@@ -40,6 +40,5 @@ logging:
 
 elasticsearch:
   cluster: nautilus
-  embedded: false
   hosts:
-  - 192.168.99.100
+  - elasticsearch

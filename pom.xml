@@ -143,6 +143,30 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>docker</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.3.5</version>
+                        <configuration>
+                            <imageName>nautilus-funnels:${project.version}</imageName>
+                            <dockerDirectory>${project.basedir}</dockerDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
