@@ -17,6 +17,7 @@
 package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.graphmanagement.ESFilterGenerator;
@@ -26,6 +27,7 @@ import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.joda.time.format.DateTimeFormat;
@@ -53,8 +55,12 @@ public class ESUtils {
                 .admin()
                 .indices()
                 .preparePutTemplate("core")
-                .setTemplate(TABLENAME_PREFIX + "*")
+                .setTemplate(getAllIndices())
                 .setOrder(0)
+                .setSettings(Settings.builder()
+                                .put("number_of_shards", esConfiguration.getDefaultShards())
+                                .put("number_of_replicas", esConfiguration.getDefaultReplicas())
+                                .build())
                 .addMapping(TypeUtils.typeName(Session.class), mapping(Session.class))
                 .addMapping(TypeUtils.typeName(StateTransition.class), mapping(StateTransition.class, Session.class))
                 .setCreate(false)
@@ -74,7 +80,11 @@ public class ESUtils {
                 ESUtils.TABLENAME_POSTFIX, datePostfix);
     }
 
-    public static String getAllIndices(final String table) {
+    public static String getAllIndices() {
+        return TABLENAME_PREFIX + "*";
+    }
+
+    public static String getAllIndicesForTenant(final String table) {
         return String.format("%s-%s-%s-*",
                 ESUtils.TABLENAME_PREFIX, table, ESUtils.TABLENAME_POSTFIX);
     }

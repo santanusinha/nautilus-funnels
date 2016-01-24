@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
@@ -31,13 +32,18 @@ import java.util.Map;
 @NoArgsConstructor
 public class Session extends TemporalTypedEntity<Session> {
     @NotNull
+    @NotEmpty
+    private String tenant;
+
+    @NotNull
     private String path;
     private String normalizedPath;
     private Map<String, Object> attributes;
 
     @Builder
-    public Session(String id, long timestamp, String path, String normalizedPath, Map<String, Object> attributes) {
+    public Session(String id, long timestamp, String tenant, String path, String normalizedPath, Map<String, Object> attributes) {
         super(id, timestamp);
+        this.tenant = tenant;
         this.path = path;
         this.normalizedPath = normalizedPath;
         this.attributes = attributes;

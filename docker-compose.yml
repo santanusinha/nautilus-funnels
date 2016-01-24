@@ -1,0 +1,26 @@
+# ES compose
+elasticsearch:
+  image: elasticsearch:2.1.1
+  command: elasticsearch -Des.cluster.name="nautilus"
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
+#nautilus compose
+nautilus:
+  container_name: nautilus-funnels
+  build: .
+  ports:
+   - "8080:8080"
+   - "8081:8081"
+  volumes:
+   - /var/log/nautilus
+  # link to ES
+  links:
+   - elasticsearch
+   # enviroment valiables
+#  environment:
+#   - GC_ALGO=UseG1GC
+#   - JAVA_PROCESS_MIN_HEAP=1g
+#   - JAVA_PROCESS_MAX_HEAP=1g
+#   - CONFIG_ENV=dev

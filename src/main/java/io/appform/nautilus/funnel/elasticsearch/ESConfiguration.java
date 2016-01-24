@@ -35,6 +35,10 @@ public class ESConfiguration {
     @JsonProperty
     private Vector<String> hosts;
 
-    private boolean embedded = true;
+    private boolean embedded = false;
+
+    private int defaultShards = 2;
+
+    private int defaultReplicas = 0;
 
 }

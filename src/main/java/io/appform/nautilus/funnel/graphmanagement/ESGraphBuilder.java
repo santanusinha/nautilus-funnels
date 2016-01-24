@@ -57,7 +57,7 @@ public class ESGraphBuilder implements GraphBuilder {
             SearchRequestBuilder query = context
                     .getEsConnection()
                     .client()
-                    .prepareSearch(ESUtils.getAllIndices(tenant))
+                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
                     .setQuery(ESUtils.query(graphRequest))
                     .setTypes(TypeUtils.typeName(StateTransition.class))
                     .setFetchSource(false)
