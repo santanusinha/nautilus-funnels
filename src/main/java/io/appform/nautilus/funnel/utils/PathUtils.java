@@ -18,11 +18,9 @@ package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import io.appform.nautilus.funnel.model.session.FlatPath;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,6 +90,22 @@ public class PathUtils {
 
 
         return dedupList;
+    }
+
+    public static Map<String, Integer> rankNodes(final List<String> paths) {
+        Map<String, Integer> ranks = new HashMap<>();
+
+        paths.stream().forEach(path -> {
+            String[] nodes = path.split(Constants.PATH_STATE_SEPARATOR);
+            for (int j = 0; j < nodes.length; j++) {
+                if (!ranks.containsKey(nodes[j])) {
+                    ranks.put(nodes[j], j);
+                } else {
+                    ranks.put(nodes[j], Math.min(ranks.get(nodes[j]), j));
+                }
+            }
+        });
+        return ranks;
     }
 
 }

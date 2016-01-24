@@ -29,6 +29,7 @@ import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.utils.ESUtils;
+import io.appform.nautilus.funnel.utils.PathUtils;
 import io.appform.nautilus.funnel.utils.TypeUtils;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -152,15 +152,27 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                 }
             }
 
+            ImmutableList<FlatPath> paths = flatPathListBuilder.build();
+
+
+            PathUtils.rankNodes(paths.stream().map(flatPath -> flatPath.getPath()).collect(Collectors.toCollection(ArrayList::new)))
+                    .entrySet().stream().forEach(rank -> {
+                        String nodeName = rank.getKey();
+                        int nodeRank = rank.getValue();
+                        if (vertices.containsKey(nodeName)) {
+                            GraphNode node = vertices.get(nodeName);
+                            node.setRank(nodeRank);
+                        }
+                    }
+            );
+
             ArrayList<GraphNode> verticesList = new ArrayList<>(vertices.values());
             verticesList.sort((GraphNode lhs, GraphNode rhs) -> Integer.compare(lhs.getId(), rhs.getId()));
-            ImmutableList<FlatPath> paths = flatPathListBuilder.build();
-            Map<String, Integer> ranks = rankNodes(paths);
+
             return Graph.builder()
                     .vertices(verticesList)
                     .edges(edges)
-                    .paths(flatPathListBuilder.build())
-                    .ranks(ranks)
+                    .paths(paths)
                     .build();
         } catch (Exception e) {
             log.error("Error running grouping: ", e);
@@ -168,21 +180,4 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
         }
     }
-
-    private Map<String, Integer> rankNodes(List<FlatPath> paths) {
-        Map<String, Integer> ranks = new HashMap<>();
-
-        paths.stream().forEach(path -> {
-            String[] nodes = path.getPath().split("->");
-            for (int j = 0; j < nodes.length; j++) {
-                if (!ranks.containsKey(nodes[j])) {
-                    ranks.put(nodes[j], j);
-                } else {
-                    ranks.put(nodes[j], Math.min(ranks.get(nodes[j]), j));
-                }
-            }
-        });
-        return ranks;
-    }
-
 }

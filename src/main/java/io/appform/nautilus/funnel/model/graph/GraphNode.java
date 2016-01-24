@@ -34,6 +34,10 @@ public class GraphNode {
     @Setter
     private boolean start;
 
+    @Getter
+    @Setter
+    private int rank;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

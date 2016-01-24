@@ -29,5 +29,4 @@ public class Graph {
     private List<GraphNode> vertices;
     private List<GraphEdge> edges;
     private List<FlatPath> paths;
-    private Map<String, Integer> ranks;
 }
