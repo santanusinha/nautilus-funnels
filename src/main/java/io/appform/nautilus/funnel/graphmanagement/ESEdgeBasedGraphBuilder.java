@@ -83,9 +83,9 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                                             .size(0)
                                                             .subAggregation(
                                                                     AggregationBuilders
-                                                                        .terms("pathBreakup")
-                                                                        .field("normalizedPath")
-                                                                        .size(0)
+                                                                            .terms("pathBreakup")
+                                                                            .field("normalizedPath")
+                                                                            .size(0)
                                                             )
                                             )))
                     .add(
@@ -98,9 +98,9 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                     .setSize(0)
                                     .setIndicesOptions(IndicesOptions.lenientExpandOpen())
                                     .addAggregation(AggregationBuilders
-                                            .terms("paths")
-                                            .field("normalizedPath")
-                                            .size(0)
+                                                    .terms("paths")
+                                                    .field("normalizedPath")
+                                                    .size(0)
                                     ))
                     .execute()
                     .actionGet();
@@ -163,7 +163,9 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
             ImmutableList<FlatPath> paths = flatPathListBuilder.build();
 
 
-            PathUtils.rankNodes(paths.stream().map(flatPath -> flatPath.getPath()).collect(Collectors.toCollection(ArrayList::new)))
+            PathUtils.rankNodes(paths.stream()
+                    .map(flatPath -> flatPath.getPath())
+                    .collect(Collectors.toCollection(ArrayList::new)))
                     .entrySet().stream().forEach(rank -> {
                         String nodeName = rank.getKey();
                         int nodeRank = rank.getValue();
