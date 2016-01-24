@@ -18,11 +18,15 @@ package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import io.appform.nautilus.funnel.model.session.FlatPath;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,5 +45,22 @@ public class PathUtilsTest {
         log.debug("INPUT: " + Joiner.on("->").join(input));
         log.debug("OUTPUT: " + Joiner.on("->").join(output));
         assertEquals("1->22->31->49->2->25->1->2->3->4->2", Joiner.on("->").join(output));
+    }
+
+    @Test
+    public void testRankNodes() {
+        Map<String, Integer> expectedRanks = ImmutableMap.<String, Integer> builder()
+                .put("A", 0)
+                .put("C", 0)
+                .put("D", 0)
+                .put("B", 1)
+                .put("F", 1)
+                .put("E", 2)
+                .build();
+
+        Map<String, Integer> ranks = PathUtils.rankNodes(ImmutableList.of("A->B->C", "C->D->E", "D->F", "D->D"));
+        log.debug("expectedRanks: " + Joiner.on(",").withKeyValueSeparator("=").join(expectedRanks));
+        log.debug("ranks:" + Joiner.on(",").withKeyValueSeparator("=").join(ranks));
+        assertEquals(expectedRanks, ranks);
     }
 }

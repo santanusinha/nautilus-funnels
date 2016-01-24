@@ -30,6 +30,7 @@ import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.utils.Constants;
 import io.appform.nautilus.funnel.utils.ESUtils;
+import io.appform.nautilus.funnel.utils.PathUtils;
 import io.appform.nautilus.funnel.utils.TypeUtils;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -82,9 +83,9 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                                             .size(0)
                                                             .subAggregation(
                                                                     AggregationBuilders
-                                                                        .terms("pathBreakup")
-                                                                        .field("normalizedPath")
-                                                                        .size(0)
+                                                                            .terms("pathBreakup")
+                                                                            .field("normalizedPath")
+                                                                            .size(0)
                                                             )
                                             )))
                     .add(
@@ -97,9 +98,9 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                     .setSize(0)
                                     .setIndicesOptions(IndicesOptions.lenientExpandOpen())
                                     .addAggregation(AggregationBuilders
-                                            .terms("paths")
-                                            .field("normalizedPath")
-                                            .size(0)
+                                                    .terms("paths")
+                                                    .field("normalizedPath")
+                                                    .size(0)
                                     ))
                     .execute()
                     .actionGet();
@@ -119,13 +120,13 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     for (Terms.Bucket toBucket : toTerms.getBuckets()) {
                         Terms paths = toBucket.getAggregations().get("pathBreakup");
                         List<FlatPath> pathList =
-                        paths.getBuckets()
-                                .stream()
-                                .map((Terms.Bucket pathBucket) -> FlatPath.builder()
-                                        .path(pathBucket.getKey().toString())
-                                        .count(pathBucket.getDocCount())
-                                        .build())
-                                .collect(Collectors.toCollection(ArrayList::new));
+                                paths.getBuckets()
+                                        .stream()
+                                        .map((Terms.Bucket pathBucket) -> FlatPath.builder()
+                                                .path(pathBucket.getKey().toString())
+                                                .count(pathBucket.getDocCount())
+                                                .build())
+                                        .collect(Collectors.toCollection(ArrayList::new));
                         final String toNodeName = toBucket.getKey().toString();
                         edges.add(GraphEdge
                                 .builder()
@@ -159,14 +160,31 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                 }
             }
 
+            ImmutableList<FlatPath> paths = flatPathListBuilder.build();
+
+
+            PathUtils.rankNodes(paths.stream()
+                    .map(flatPath -> flatPath.getPath())
+                    .collect(Collectors.toCollection(ArrayList::new)))
+                    .entrySet().stream().forEach(rank -> {
+                        String nodeName = rank.getKey();
+                        int nodeRank = rank.getValue();
+                        if (vertices.containsKey(nodeName)) {
+                            GraphNode node = vertices.get(nodeName);
+                            node.setRank(nodeRank);
+                        }
+                    }
+            );
+
             ArrayList<GraphNode> verticesList = new ArrayList<>(vertices.values());
             verticesList.sort((GraphNode lhs, GraphNode rhs) -> Integer.compare(lhs.getId(), rhs.getId()));
+
             return Graph.builder()
                     .vertices(verticesList)
                     .edges(edges)
-                    .paths(flatPathListBuilder.build())
+                    .paths(paths)
                     .build();
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error running grouping: ", e);
             throw new NautilusException(
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
