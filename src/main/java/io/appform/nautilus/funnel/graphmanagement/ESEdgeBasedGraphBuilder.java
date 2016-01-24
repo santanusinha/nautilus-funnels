@@ -16,8 +16,6 @@
 
 package io.appform.nautilus.funnel.graphmanagement;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -81,8 +79,8 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                                             .field("to")
                                                             .subAggregation(
                                                                     AggregationBuilders
-                                                                        .terms("pathBreakup")
-                                                                        .field("normalizedPath")
+                                                                            .terms("pathBreakup")
+                                                                            .field("normalizedPath")
                                                             )
                                             )))
                     .add(
@@ -114,13 +112,13 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     for (Terms.Bucket toBucket : toTerms.getBuckets()) {
                         Terms paths = toBucket.getAggregations().get("pathBreakup");
                         List<FlatPath> pathList =
-                        paths.getBuckets()
-                                .stream()
-                                .map((Terms.Bucket pathBucket) -> FlatPath.builder()
-                                        .path(pathBucket.getKey().toString())
-                                        .count(pathBucket.getDocCount())
-                                        .build())
-                                .collect(Collectors.toCollection(ArrayList::new));
+                                paths.getBuckets()
+                                        .stream()
+                                        .map((Terms.Bucket pathBucket) -> FlatPath.builder()
+                                                .path(pathBucket.getKey().toString())
+                                                .count(pathBucket.getDocCount())
+                                                .build())
+                                        .collect(Collectors.toCollection(ArrayList::new));
                         final String toNodeName = toBucket.getKey().toString();
                         edges.add(GraphEdge
                                 .builder()
@@ -164,7 +162,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     .paths(flatPathListBuilder.build())
                     .ranks(ranks)
                     .build();
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error running grouping: ", e);
             throw new NautilusException(
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
