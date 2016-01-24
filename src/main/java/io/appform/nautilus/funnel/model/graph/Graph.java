@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -28,4 +29,5 @@ public class Graph {
     private List<GraphNode> vertices;
     private List<GraphEdge> edges;
     private List<FlatPath> paths;
+    private Map<String, Integer> ranks;
 }

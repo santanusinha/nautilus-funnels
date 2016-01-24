@@ -16,6 +16,8 @@
 
 package io.appform.nautilus.funnel.graphmanagement;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -153,10 +156,13 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
 
             ArrayList<GraphNode> verticesList = new ArrayList<>(vertices.values());
             verticesList.sort((GraphNode lhs, GraphNode rhs) -> Integer.compare(lhs.getId(), rhs.getId()));
+            ImmutableList<FlatPath> paths = flatPathListBuilder.build();
+            Map<String, Integer> ranks = rankNodes(paths);
             return Graph.builder()
                     .vertices(verticesList)
                     .edges(edges)
                     .paths(flatPathListBuilder.build())
+                    .ranks(ranks)
                     .build();
         }  catch (Exception e) {
             log.error("Error running grouping: ", e);
@@ -164,4 +170,21 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
         }
     }
+
+    private Map<String, Integer> rankNodes(List<FlatPath> paths) {
+        Map<String, Integer> ranks = new HashMap<>();
+
+        paths.stream().forEach(path -> {
+            String[] nodes = path.getPath().split("->");
+            for (int j = 0; j < nodes.length; j++) {
+                if (!ranks.containsKey(nodes[j])) {
+                    ranks.put(nodes[j], j);
+                } else {
+                    ranks.put(nodes[j], Math.min(ranks.get(nodes[j]), j));
+                }
+            }
+        });
+        return ranks;
+    }
+
 }
