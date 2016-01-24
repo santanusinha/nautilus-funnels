@@ -8,7 +8,7 @@ elasticsearch:
 
 #nautilus compose
 nautilus:
-  container_name: nautilus_server
+  container_name: nautilus-funnels
   build: .
   ports:
    - "8080:8080"

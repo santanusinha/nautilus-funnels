@@ -9,13 +9,14 @@ import random
 from datetime import timedelta, date
 
 #activityTemplate = [[ "Home"], ["Mini"]]
-activityTemplate = [[ "Home"], ["Mini", "Sedan", "Prime"], ["RideNow", "RideLater"], ["Confirm", "Cancel"]]
+#activityTemplate = [[ "Home"], ["Mini", "Sedan", "Prime"], ["RideNow", "RideLater"], ["Confirm", "Cancel"]]
+activityTemplate = [[ "Home", "Search", "Notification"], ["BrowsePage", "SearchResults", "Product"], ["Product", "Home"], ["Checkout", "Home"]]
 
 def simulateUser():
     session = dict()
     session['sessionId'] = str(uuid.uuid4())
     session['sessionStartTime'] = long(time.time() * 1000)
-    numSteps = random.randint(1,4)
+    numSteps = random.randint(1,len(activityTemplate))
     #numSteps = 4
     activities = []
     for i in range(0, numSteps):
@@ -24,7 +25,8 @@ def simulateUser():
         activity['state'] = random.choice(activityTemplate[i])
         activities.append(activity)
     session['activities'] = activities
-    print json.dumps(session)
+    #print json.dumps(session)
+    print numSteps
     r = requests.post(url="http://" + args.server + "/v1/activities/test", data=json.dumps(session), headers={'Content-type': 'application/json'})
     if r.status_code == requests.codes.ok:
         print "Saved"

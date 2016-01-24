@@ -78,6 +78,7 @@ public class SessionActivityHandler {
                     session = Session.builder()
                                     .id(activitySet.getSessionId())
                                     .timestamp(activitySet.getSessionStartTime())
+                                    .tenant(tenant)
                                     .path(null)
                                     .normalizedPath("")
                                     .attributes(activitySet.getAttributes())

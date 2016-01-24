@@ -62,7 +62,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                             analyticsContext
                                     .getEsConnection()
                                     .client()
-                                    .prepareSearch(ESUtils.getAllIndices(tenant)) //TODO::SELECT RELEVANT INDICES ONLY
+                                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant)) //TODO::SELECT RELEVANT INDICES ONLY
                                     .setQuery(
                                             QueryBuilders.boolQuery()
                                                     .filter(QueryBuilders.hasParentQuery(
@@ -90,7 +90,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     .add(
                             analyticsContext.getEsConnection()
                                     .client()
-                                    .prepareSearch(ESUtils.getAllIndices(tenant))
+                                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
                                     .setQuery(ESUtils.query(graphRequest))
                                     .setTypes(TypeUtils.typeName(Session.class))
                                     .setFetchSource(false)

@@ -16,12 +16,14 @@
 
 package io.appform.nautilus.funnel;
 
+import io.appform.nautilus.funnel.administration.TenancyManager;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.graphmanagement.ESEdgeBasedGraphBuilder;
 import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.persistence.impl.ESTemporalTypedEntityStore;
 import io.appform.nautilus.funnel.resources.ActivityResource;
 import io.appform.nautilus.funnel.resources.GraphResource;
+import io.appform.nautilus.funnel.resources.TenancyManagementResource;
 import io.appform.nautilus.funnel.sessionmanagement.SessionActivityHandler;
 import io.appform.nautilus.funnel.tasks.Initialize;
 import io.dropwizard.Application;
@@ -51,6 +53,7 @@ public class FunnelServerApp extends Application<FunnelServerConfiguration> {
                                 .build();
 
         environment.jersey().register(new GraphResource(context, new ESEdgeBasedGraphBuilder()));
+        environment.jersey().register(new TenancyManagementResource(new TenancyManager(esConnection)));
 
         environment.admin().addTask(new Initialize(funnelServerConfiguration.getElasticsearch(), esConnection));
         configureCors(environment);

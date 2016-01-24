@@ -55,7 +55,7 @@ public class ESUtils {
                 .admin()
                 .indices()
                 .preparePutTemplate("core")
-                .setTemplate(TABLENAME_PREFIX + "*")
+                .setTemplate(getAllIndices())
                 .setOrder(0)
                 .setSettings(Settings.builder()
                                 .put("number_of_shards", esConfiguration.getDefaultShards())
@@ -80,7 +80,11 @@ public class ESUtils {
                 ESUtils.TABLENAME_POSTFIX, datePostfix);
     }
 
-    public static String getAllIndices(final String table) {
+    public static String getAllIndices() {
+        return TABLENAME_PREFIX + "*";
+    }
+
+    public static String getAllIndicesForTenant(final String table) {
         return String.format("%s-%s-%s-*",
                 ESUtils.TABLENAME_PREFIX, table, ESUtils.TABLENAME_POSTFIX);
     }
