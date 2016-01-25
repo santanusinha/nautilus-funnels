@@ -52,13 +52,13 @@ public class GraphResource {
                     .data(graphBuilder.build(tenant, context, request))
                     .build();
         } catch (Exception e) {
-            log.error("Error building graph for {}", tenant, e);
+            log.error("Error getting attribute mappings for {}", tenant, e);
             throw new WebApplicationException(
                     Response.status(500)
                             .entity(ApiResponse
                                     .builder()
                                     .error(true)
-                                    .data(Collections.singletonMap("message", "Could not build graph"))
+                                    .data(Collections.singletonMap("message", "Could not get attribute mappings"))
                                     .build())
                             .build()
             );
