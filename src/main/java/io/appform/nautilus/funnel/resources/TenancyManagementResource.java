@@ -17,12 +17,11 @@
 package io.appform.nautilus.funnel.resources;
 
 import io.appform.nautilus.funnel.administration.TenancyManager;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import java.util.Map;
  */
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/v1/tenants")
+@Slf4j
 public class TenancyManagementResource {
     private final TenancyManager tenancyManager;
 
@@ -40,13 +40,42 @@ public class TenancyManagementResource {
     }
 
     @GET
-    public Map<String, List<String>> tenants() {
-        return Collections.singletonMap("tenants", tenancyManager.tenants());
+    public ApiResponse tenants() {
+        try {
+            return ApiResponse.builder()
+                        .error(false)
+                        .data(Collections.singletonMap("tenants", tenancyManager.tenants()))
+                        .build();
+        } catch (Exception e) {
+            log.error("Error getting tenants", e);
+            throw new WebApplicationException(
+                    Response.status(500)
+                            .entity(ApiResponse
+                                    .builder()
+                                    .error(true)
+                                    .data(Collections.singletonMap("message", "Could not get tenants"))
+                                    .build())
+                            .build()
+            );
+        }
     }
 
     @GET
     @Path("/{tenant}/mappings")
     public Object mappings(@PathParam("tenant") final String tenant) throws Exception {
-        return tenancyManager.mappings(tenant);
+        try {
+            return tenancyManager.mappings(tenant);
+        } catch (Exception e) {
+            log.error("Error getting tenants", e);
+            throw new WebApplicationException(
+                Response.status(500)
+                        .entity(ApiResponse
+                                .builder()
+                                .error(true)
+                                .data(Collections.singletonMap("message", "Could not get tenants"))
+                                .build())
+                        .build()
+            );
+        }
     }
 }

@@ -23,11 +23,10 @@ import io.appform.nautilus.funnel.model.support.Context;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Valid;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Collections;
 
 /**
  * Main resource to return graphs
@@ -46,11 +45,23 @@ public class GraphResource {
 
     @POST
     @Path("/{tenant}")
-    public ApiResponse response(@PathParam("tenant") final String tenant, @Valid final GraphRequest request) throws Exception {
-        Graph graph = graphBuilder.build(tenant, context, request);
-        return ApiResponse.builder()
+    public ApiResponse response(@PathParam("tenant") final String tenant, @Valid final GraphRequest request) {
+        try {
+            return ApiResponse.builder()
                     .error(false)
-                    .data(graph)
+                    .data(graphBuilder.build(tenant, context, request))
                     .build();
+        } catch (Exception e) {
+            log.error("Error building graph for {}", tenant, e);
+            throw new WebApplicationException(
+                    Response.status(500)
+                            .entity(ApiResponse
+                                    .builder()
+                                    .error(true)
+                                    .data(Collections.singletonMap("message", "Could not build graph"))
+                                    .build())
+                            .build()
+            );
+        }
     }
 }

@@ -62,7 +62,7 @@ public class TenancyManager {
                 .setSize(0)
                 .execute()
                 .actionGet();
-        if(response.status() == RestStatus.OK) {
+        if(response.status() == RestStatus.OK && null != response.getAggregations()) {
             Terms terms = response.getAggregations().get(AGGREGATION_NAME);
             return terms.getBuckets().stream().map(Terms.Bucket::getKeyAsString).collect(Collectors.toCollection(ArrayList::new));
         }

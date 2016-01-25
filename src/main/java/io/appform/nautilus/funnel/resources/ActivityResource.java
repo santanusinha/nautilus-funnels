@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 /**
@@ -46,19 +47,23 @@ public class ActivityResource {
                             @Valid SessionActivitySet sessionActivitySet) {
         try {
             activityHandler.handle(tenant, sessionActivitySet);
-        } catch (NautilusException e) {
-            log.error("Error ingesting activity for: {}", tenant, e);
             return ApiResponse
                     .builder()
-                    .error(true)
-                    .data(Collections.singletonMap("message", "Could not ingest event"))
+                    .error(false)
+                    .data(Collections.singletonMap(sessionActivitySet.getActivities(), true))
                     .build();
+        } catch (Exception e) {
+            log.error("Error ingesting activity for: {}", tenant, e);
+            throw new WebApplicationException(
+                    Response.status(500)
+                            .entity(ApiResponse
+                                    .builder()
+                                    .error(true)
+                                    .data(Collections.singletonMap("message", "Could not ingest event"))
+                                    .build())
+                            .build()
+            );
         }
-        return ApiResponse
-                .builder()
-                .error(false)
-                .data(Collections.singletonMap(sessionActivitySet.getActivities(), true))
-                .build();
     }
 
     /*@Path("/{tenant}/{session}/bulk")

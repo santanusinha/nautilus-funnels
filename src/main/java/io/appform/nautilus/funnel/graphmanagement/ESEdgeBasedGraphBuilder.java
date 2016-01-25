@@ -115,6 +115,10 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
             {
                 SearchResponse edgeGroupingResponse = multiSearchResponse.getResponses()[0].getResponse();
                 Aggregations aggregations = edgeGroupingResponse.getAggregations();
+                if(null == aggregations) {
+                    return Graph.builder()
+                                .build();
+                }
                 Terms terms = aggregations.get("from_nodes");
 
                 for (Terms.Bucket fromBucket : terms.getBuckets()) {
