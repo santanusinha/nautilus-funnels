@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
-import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.utils.Constants;
@@ -32,18 +31,16 @@ import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by santanu.s on 23/01/16.
+ * Tenancy management
  */
 public class TenancyManager {
     private static final String AGGREGATION_NAME = "tenants";
@@ -81,15 +78,15 @@ public class TenancyManager {
                 .actionGet();
         Map<String, Map<String, String>> mappings = Maps.newHashMap();
         for (ObjectCursor<String> index : response.getMappings().keys()) {
-            updateMAppingsForType(response, index, mappings, Session.class);
-            updateMAppingsForType(response, index, mappings, StateTransition.class);
+            updateMappingsForType(response, index, mappings, Session.class);
+            updateMappingsForType(response, index, mappings, StateTransition.class);
             //mappings.addAll(mappingParser.getFieldMappings(mappingData));
             //System.out.println(typeMeta);
         }
         return mappings;
     }
 
-    private void updateMAppingsForType(GetMappingsResponse response, ObjectCursor<String> index, Map<String, Map<String, String>> mappings, Class<?> entity) throws Exception {
+    private void updateMappingsForType(GetMappingsResponse response, ObjectCursor<String> index, Map<String, Map<String, String>> mappings, Class<?> entity) throws Exception {
         final String typeName = TypeUtils.typeName(entity);
         if(!mappings.containsKey(typeName)) {
             mappings.put(typeName, Maps.<String, String>newHashMap());
