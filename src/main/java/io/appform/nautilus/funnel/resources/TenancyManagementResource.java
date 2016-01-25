@@ -20,6 +20,7 @@ import io.appform.nautilus.funnel.administration.TenancyManager;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.Collections;
@@ -41,5 +42,11 @@ public class TenancyManagementResource {
     @GET
     public Map<String, List<String>> tenants() {
         return Collections.singletonMap("tenants", tenancyManager.tenants());
+    }
+
+    @GET
+    @Path("/{tenant}/mappings")
+    public Object mappings(@PathParam("tenant") final String tenant) throws Exception {
+        return tenancyManager.mappings(tenant);
     }
 }

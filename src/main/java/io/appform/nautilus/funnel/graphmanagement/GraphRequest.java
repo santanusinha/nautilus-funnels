@@ -17,26 +17,72 @@
 package io.appform.nautilus.funnel.graphmanagement;
 
 import io.appform.nautilus.funnel.model.filter.Filter;
-import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.filter.TimeWindow;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import io.dropwizard.util.Duration;
+import lombok.*;
+import org.joda.time.DateTime;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * A graph request.
  */
-@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @Data
-public class GraphRequest extends FilteredRequest {
+@EqualsAndHashCode
+@ToString
+public class GraphRequest {
+
+    @NotNull
+    @Valid
+    private List<Filter> sessionFilters = Collections.emptyList();
+
+    @NotNull
+    @Valid
+    private List<Filter> stateFilters = Collections.emptyList();
+
+    private TimeWindow timeWindow = TimeWindow.builder()
+            .start(DateTime.now())
+            .duration(Duration.hours(-24))
+            .timeField("timestamp")
+            .build();
 
     @Builder
-    public GraphRequest(List<Filter> filters, TimeWindow timeWindow) {
-        super(filters, timeWindow);
+    public GraphRequest(@Singular List<Filter> sessionFilters,
+                        @Singular List<Filter> stateFilters,
+                        TimeWindow timeWindow) {
+        this.sessionFilters = sessionFilters;
+        this.stateFilters = stateFilters;
+        this.timeWindow = timeWindow;
     }
 
+/*    public static void main(String[] args) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        final String data = "{\n" +
+                "    \"sessionFilters\" : [\n" +
+                "            {\n" +
+                "                \"filter\" : \"exists\",\n" +
+                "                \"attribute\" : \"color\"\n" +
+                "            }\n" +
+                "        ],\n" +
+                "    \"stateFilters\" : [\n" +
+                "            {\n" +
+                "                \"filter\" : \"equals\",\n" +
+                "                \"attribute\" : \"channel\",\n" +
+                "                \"value\" : \"mobile\"\n" +
+                "            }\n" +
+                "        ],\n" +
+                "    \"timeWindow\" : {\n" +
+                "        \"duration\" : \"30m\"\n" +
+                "    }    \n" +
+                "}";
+        GraphRequest r = objectMapper.readValue(data, GraphRequest.class);
+        System.out.println(r);
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Set<ConstraintViolation<GraphRequest>> res = validator.validate(r);
+        System.out.println(res);
+    }*/
 }

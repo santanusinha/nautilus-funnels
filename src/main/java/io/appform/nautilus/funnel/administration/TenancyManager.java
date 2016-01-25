@@ -16,22 +16,30 @@
 
 package io.appform.nautilus.funnel.administration;
 
+import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
+import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
 import io.appform.nautilus.funnel.model.session.Session;
+import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.utils.Constants;
 import io.appform.nautilus.funnel.utils.ESUtils;
 import io.appform.nautilus.funnel.utils.TypeUtils;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.IndicesOptions;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,9 +48,11 @@ import java.util.stream.Collectors;
 public class TenancyManager {
     private static final String AGGREGATION_NAME = "tenants";
     private final ESConnection connection;
+    private ObjectMapper mapper;
 
-    public TenancyManager(ESConnection connection) {
+    public TenancyManager(ESConnection connection, ObjectMapper mapper) {
         this.connection = connection;
+        this.mapper = mapper;
     }
 
     public List<String> tenants() {
@@ -60,5 +70,46 @@ public class TenancyManager {
             return terms.getBuckets().stream().map(Terms.Bucket::getKeyAsString).collect(Collectors.toCollection(ArrayList::new));
         }
         return Collections.emptyList();
+    }
+
+    public Map<String, Map<String, String>> mappings(final String tenant) throws Exception {
+        GetMappingsResponse response = connection.client()
+                .admin()
+                .indices()
+                .prepareGetMappings(ESUtils.getAllIndicesForTenant(tenant))
+                .execute()
+                .actionGet();
+        Map<String, Map<String, String>> mappings = Maps.newHashMap();
+        for (ObjectCursor<String> index : response.getMappings().keys()) {
+            updateMAppingsForType(response, index, mappings, Session.class);
+            updateMAppingsForType(response, index, mappings, StateTransition.class);
+            //mappings.addAll(mappingParser.getFieldMappings(mappingData));
+            //System.out.println(typeMeta);
+        }
+        return mappings;
+    }
+
+    private void updateMAppingsForType(GetMappingsResponse response, ObjectCursor<String> index, Map<String, Map<String, String>> mappings, Class<?> entity) throws Exception {
+        final String typeName = TypeUtils.typeName(entity);
+        if(!mappings.containsKey(typeName)) {
+            mappings.put(typeName, Maps.<String, String>newHashMap());
+        }
+        Map<String, String> mappingsForType = mappings.get(typeName);
+        mappingsForType.putAll(readMappings(response, index, typeName));
+    }
+
+    private Map<String, String> readMappings(GetMappingsResponse response, ObjectCursor<String> index, String typeName) throws Exception {
+        ImmutableMap.Builder<String, String> type = ImmutableMap.builder();
+        MappingMetaData mappingData = response.mappings().get(index.value).get(typeName);
+        JsonNode typeMeta = mapper.readTree(mappingData.source().toString()).get(typeName).get("properties");
+        if(typeMeta.has(Constants.ATTRIBUTE_FIELD_NAME)) {
+            JsonNode attributeMeta = typeMeta.get(Constants.ATTRIBUTE_FIELD_NAME);
+            Iterator<Map.Entry<String, JsonNode>> elements = attributeMeta.get("properties").fields();
+            while (elements.hasNext()) {
+                Map.Entry<String, JsonNode> attribute = elements.next();
+                type.put(attribute.getKey(), attribute.getValue().get("type").asText());
+            }
+        }
+        return type.build();
     }
 }

@@ -16,15 +16,31 @@
 
 package io.appform.nautilus.funnel.model.filter;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+/**
+ * User: Santanu Sinha (santanu.sinha@flipkart.com)
+ * Date: 14/03/14
+ * Time: 2:22 PM
+ */
+public interface FilterType {
+    //All
+    String equals = "equals";
+    String not_equals = "not_equals";
+    String any = "any";
+    String in = "in";
+    String exists = "exists";
+    String missing = "missing";
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+    //Numeric
+    String less_than = "less_than";
+    String less_equal = "less_equal";
+    String greater_than = "greater_than";
+    String greater_equal = "greater_equal";
 
+    String between = "between";
+
+    //String
+    String contains = "contains";
+
+    //Date time
+    String last = "last";
 }

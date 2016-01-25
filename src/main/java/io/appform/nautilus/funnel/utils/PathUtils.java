@@ -18,7 +18,6 @@ package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import io.appform.nautilus.funnel.model.session.FlatPath;
 
 import java.util.*;
 import java.util.stream.Collectors;

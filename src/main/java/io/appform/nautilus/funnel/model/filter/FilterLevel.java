@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.utils;
+package io.appform.nautilus.funnel.model.filter;
 
 /**
- * A bunch of constanta
+ * Level where this filter is applied.
  */
-public class Constants {
-    public static final String FIELD_VALIDATION_REGEX = "[a-zA-Z0-9\\-_]";
-    public static final String FIELD_REPLACEMENT_VALUE = "_";
-    public static final String SEPARATOR = "_--&--_";
-    public static final String PATH_STATE_SEPARATOR = "->";
-    public static final String TIMESTAMP_FIELD_NAME = "timestamp";
-    public static final String ATTRIBUTE_FIELD_NAME = "attributes";
+public enum FilterLevel {
+    /**
+     * Filter will be applied to {@link io.appform.nautilus.funnel.model.session.Session} attributes.
+     */
+    session,
 
+    /**
+     * Filter will be applicable to {@link io.appform.nautilus.funnel.model.session.StateTransition} attributes.
+     */
+    state
 }

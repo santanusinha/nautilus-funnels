@@ -14,17 +14,35 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.model.filter;
+package io.appform.nautilus.funnel.model.filter.impl.general;
 
+import io.appform.nautilus.funnel.model.filter.Filter;
+import io.appform.nautilus.funnel.model.filter.FilterType;
+import io.appform.nautilus.funnel.model.filter.FilterVisitor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Check existence of a value in the attribute.
+ */
 @Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Exists extends Filter {
 
+    public Exists() {
+        super(FilterType.exists);
+    }
+
+    @Builder
+    public Exists(String field) {
+        super(FilterType.exists, field);
+    }
+
+    @Override
+    public void accept(FilterVisitor visitor) throws Exception {
+        visitor.visit(this);
+    }
 }

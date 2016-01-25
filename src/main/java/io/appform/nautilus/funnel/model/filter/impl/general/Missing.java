@@ -14,17 +14,38 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.model.filter;
+package io.appform.nautilus.funnel.model.filter.impl.general;
 
+import io.appform.nautilus.funnel.model.filter.Filter;
+import io.appform.nautilus.funnel.model.filter.FilterType;
+import io.appform.nautilus.funnel.model.filter.FilterVisitor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Opposite of {@link Exists}. Checks if a value is missing.
+ */
 @Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Missing extends Filter {
+
+	public Missing() {
+		super(FilterType.missing);
+	}
+
+	@Builder
+	public Missing(String field) {
+		super(FilterType.missing, field);
+	}
+
+	@Override
+	public void accept(FilterVisitor visitor) throws Exception {
+		visitor.visit(this);
+
+	}
+
 
 }

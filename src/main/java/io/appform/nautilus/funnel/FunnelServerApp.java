@@ -16,6 +16,7 @@
 
 package io.appform.nautilus.funnel;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.nautilus.funnel.administration.TenancyManager;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.graphmanagement.ESEdgeBasedGraphBuilder;
@@ -42,8 +43,12 @@ public class FunnelServerApp extends Application<FunnelServerConfiguration> {
     public void run(FunnelServerConfiguration funnelServerConfiguration, Environment environment) throws Exception {
         ESConnection esConnection = new ESConnection(funnelServerConfiguration.getElasticsearch());
         environment.lifecycle().manage(esConnection);
-
-        SessionActivityHandler sessionActivityHandler = new SessionActivityHandler(new ESTemporalTypedEntityStore(environment.getObjectMapper(), funnelServerConfiguration.getElasticsearch(), esConnection));
+        final ObjectMapper objectMapper = environment.getObjectMapper();
+        SessionActivityHandler sessionActivityHandler = new SessionActivityHandler(
+                                                            new ESTemporalTypedEntityStore(
+                                                                        objectMapper,
+                                                                        funnelServerConfiguration.getElasticsearch(),
+                                                                        esConnection));
 
         environment.jersey().register(new ActivityResource(sessionActivityHandler));
 
@@ -53,7 +58,7 @@ public class FunnelServerApp extends Application<FunnelServerConfiguration> {
                                 .build();
 
         environment.jersey().register(new GraphResource(context, new ESEdgeBasedGraphBuilder()));
-        environment.jersey().register(new TenancyManagementResource(new TenancyManager(esConnection)));
+        environment.jersey().register(new TenancyManagementResource(new TenancyManager(esConnection, objectMapper)));
 
         environment.admin().addTask(new Initialize(funnelServerConfiguration.getElasticsearch(), esConnection));
         configureCors(environment);

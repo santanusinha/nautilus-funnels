@@ -13,18 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.appform.nautilus.funnel.model.filter.impl.numeric;
 
-package io.appform.nautilus.funnel.model.filter;
-
+import io.appform.nautilus.funnel.model.filter.Filter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+import javax.validation.constraints.NotNull;
 
+/**
+ * Base class for all single numeric filters.
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public abstract class NumericBinaryFilter extends Filter {
+    @NotNull
+    private Number value;
+
+    protected NumericBinaryFilter(final String filter) {
+        super(filter);
+    }
+
+    public NumericBinaryFilter(String filter, String field, Number value) {
+        super(filter, field);
+        this.value = value;
+    }
 }

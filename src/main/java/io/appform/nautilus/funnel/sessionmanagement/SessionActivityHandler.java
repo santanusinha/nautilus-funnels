@@ -105,6 +105,7 @@ public class SessionActivityHandler {
                             .sequence(pathElements.size())
                             .timestamp(activity.getTimestamp())
                             .sessionId(activitySet.getSessionId())
+                            .attributes(activity.getAttributes())
                             .build();
                     transitions.add(transition);
                     lastState = activity.getState();

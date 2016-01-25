@@ -33,6 +33,7 @@ import io.appform.nautilus.funnel.utils.ESUtils;
 import io.appform.nautilus.funnel.utils.PathUtils;
 import io.appform.nautilus.funnel.utils.TypeUtils;
 import org.elasticsearch.action.search.MultiSearchResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -56,55 +57,57 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
     @Override
     public Graph build(final String tenant, Context analyticsContext, GraphRequest graphRequest) throws Exception {
         try {
+            SearchRequestBuilder sessionSummary = analyticsContext
+                    .getEsConnection()
+                    .client()
+                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant)) //TODO::SELECT RELEVANT INDICES ONLY
+                    .setQuery(
+                            QueryBuilders.boolQuery()
+                                    .filter(QueryBuilders.hasParentQuery(
+                                            TypeUtils.typeName(Session.class),
+                                            ESUtils.query(graphRequest))))
+                    .setTypes(TypeUtils.typeName(StateTransition.class))
+                    .setFetchSource(false)
+                    .setSize(0)
+                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
+                    .addAggregation(AggregationBuilders
+                            .terms("from_nodes")
+                            .field("from")
+                            .subAggregation(
+                                    AggregationBuilders
+                                            .terms("to_nodes")
+                                            .field("to")
+                                            .size(0)
+                                            .subAggregation(
+                                                    AggregationBuilders
+                                                            .terms("pathBreakup")
+                                                            .field("normalizedPath")
+                                                            .size(0)
+                                            )
+                            ));
+            SearchRequestBuilder stateTransitionSummary = analyticsContext.getEsConnection()
+                    .client()
+                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
+                    .setQuery(ESUtils.query(graphRequest))
+                    .setTypes(TypeUtils.typeName(Session.class))
+                    .setFetchSource(false)
+                    .setSize(0)
+                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
+                    .addAggregation(AggregationBuilders
+                            .terms("paths")
+                            .field("normalizedPath")
+                            .size(0)
+                    );
+            log.debug("Session query: {}", sessionSummary);
+            log.debug("State Query: {}", stateTransitionSummary);
             MultiSearchResponse multiSearchResponse = analyticsContext.getEsConnection()
                     .client()
                     .prepareMultiSearch()
-                    .add(
-                            analyticsContext
-                                    .getEsConnection()
-                                    .client()
-                                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant)) //TODO::SELECT RELEVANT INDICES ONLY
-                                    .setQuery(
-                                            QueryBuilders.boolQuery()
-                                                    .filter(QueryBuilders.hasParentQuery(
-                                                            TypeUtils.typeName(Session.class),
-                                                            ESUtils.query(graphRequest))))
-                                    .setTypes(TypeUtils.typeName(StateTransition.class))
-                                    .setFetchSource(false)
-                                    .setSize(0)
-                                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
-                                    .addAggregation(AggregationBuilders
-                                            .terms("from_nodes")
-                                            .field("from")
-                                            .subAggregation(
-                                                    AggregationBuilders
-                                                            .terms("to_nodes")
-                                                            .field("to")
-                                                            .size(0)
-                                                            .subAggregation(
-                                                                    AggregationBuilders
-                                                                            .terms("pathBreakup")
-                                                                            .field("normalizedPath")
-                                                                            .size(0)
-                                                            )
-                                            )))
-                    .add(
-                            analyticsContext.getEsConnection()
-                                    .client()
-                                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
-                                    .setQuery(ESUtils.query(graphRequest))
-                                    .setTypes(TypeUtils.typeName(Session.class))
-                                    .setFetchSource(false)
-                                    .setSize(0)
-                                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
-                                    .addAggregation(AggregationBuilders
-                                                    .terms("paths")
-                                                    .field("normalizedPath")
-                                                    .size(0)
-                                    ))
+                    .add(sessionSummary)
+                    .add(stateTransitionSummary)
+                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
                     .execute()
                     .actionGet();
-
 
             List<GraphEdge> edges = Lists.newArrayList();
 

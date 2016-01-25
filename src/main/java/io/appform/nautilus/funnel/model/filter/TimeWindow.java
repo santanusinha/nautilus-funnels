@@ -16,6 +16,7 @@
 
 package io.appform.nautilus.funnel.model.filter;
 
+import io.appform.nautilus.funnel.utils.Constants;
 import io.dropwizard.util.Duration;
 import lombok.*;
 import org.joda.time.DateTime;
@@ -26,6 +27,7 @@ import org.joda.time.DateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class TimeWindow {
     @Getter
     @Setter
@@ -41,7 +43,7 @@ public class TimeWindow {
 
     @Getter
     @Setter
-    private String timeField = "timestamp";
+    private String timeField = Constants.TIMESTAMP_FIELD_NAME;
 
     @Override
     public boolean equals(Object o) {

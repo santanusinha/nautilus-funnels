@@ -17,25 +17,23 @@
 package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.graphmanagement.ESFilterGenerator;
 import io.appform.nautilus.funnel.graphmanagement.GraphRequest;
-import io.appform.nautilus.funnel.model.filter.Filter;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -90,8 +88,8 @@ public class ESUtils {
     }
 
 
-    public static String sanitizeFieldForAggregation(String field){
-        return field.replaceAll(Constants.FIELD_REPLACEMENT_REGEX, Constants.FIELD_REPLACEMENT_VALUE);
+    public static String toAttributeFieldName(String field){
+        return String.format("%s.%s", Constants.ATTRIBUTE_FIELD_NAME, field);
     }
 
     /*public static<T extends AnalyticsOperation<T>> QueryBuilder query(AnalyticsOperation<T> operation) throws Exception {
@@ -99,14 +97,16 @@ public class ESUtils {
     }*/
 
     public static QueryBuilder query(GraphRequest graphRequest) throws Exception {
-        List<Filter> filters = null;
-        if(null != graphRequest.getFilters()) {
-            filters = graphRequest.getFilters();
+        BoolQueryBuilder queryBuilder = new ESFilterGenerator().build(graphRequest.getSessionFilters());
+        if(null != graphRequest.getStateFilters() || !graphRequest.getStateFilters().isEmpty()) {
+            queryBuilder.filter(
+                    QueryBuilders.hasChildQuery(TypeUtils.typeName(StateTransition.class),
+                            new ESFilterGenerator().build(graphRequest.getStateFilters())));
         }
-        else {
-            filters = Collections.emptyList();
+        if(null != graphRequest.getTimeWindow()) {
+            queryBuilder.filter(new ESFilterGenerator().build(TimeWindowNormalizer.normalize(graphRequest.getTimeWindow())));
         }
-        return new ESFilterGenerator().build(filters, graphRequest.getTimeWindow());
+        return queryBuilder;
     }
 
     /*public static FilterBuilder filters(FilteredRequest graphRequest) throws Exception {

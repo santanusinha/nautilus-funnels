@@ -13,18 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.appform.nautilus.funnel.model.filter.impl.general;
 
-package io.appform.nautilus.funnel.model.filter;
-
+import io.appform.nautilus.funnel.model.filter.Filter;
+import io.appform.nautilus.funnel.model.filter.FilterType;
+import io.appform.nautilus.funnel.model.filter.FilterVisitor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Any extends Filter {
+
+    public Any() {
+        super(FilterType.any);
+    }
+
+    @Builder
+    public Any(String field) {
+        super(FilterType.any, field);
+    }
+
+    @Override
+    public void accept(FilterVisitor visitor) throws Exception {
+        visitor.visit(this);
+    }
 
 }
+

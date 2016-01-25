@@ -18,10 +18,9 @@ package io.appform.nautilus.funnel.model.session;
 
 import com.google.common.reflect.TypeToken;
 import io.appform.nautilus.funnel.model.core.TemporalTypedEntity;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.Map;
 
 /**
  * Transitions between nodes
@@ -35,15 +34,17 @@ public class StateTransition extends TemporalTypedEntity<StateTransition> {
     private String from;
     private String to;
     private String normalizedPath;
+    private Map<String, Object> attributes;
 
     @Builder
-    public StateTransition(String id, long timestamp, String sessionId, int sequence, String from, String to, String normalizedPath) {
+    public StateTransition(String id, long timestamp, String sessionId, int sequence, String from, String to, String normalizedPath, @Singular Map<String, Object> attributes) {
         super(id, timestamp);
         this.sessionId = sessionId;
         this.sequence = sequence;
         this.from = from;
         this.to = to;
         this.normalizedPath = normalizedPath;
+        this.attributes = attributes;
     }
 
     @Override

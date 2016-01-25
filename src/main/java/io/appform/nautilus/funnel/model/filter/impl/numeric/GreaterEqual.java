@@ -13,18 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.appform.nautilus.funnel.model.filter.impl.numeric;
 
-package io.appform.nautilus.funnel.model.filter;
-
+import io.appform.nautilus.funnel.model.filter.FilterType;
+import io.appform.nautilus.funnel.model.filter.FilterVisitor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Filter numbers greater than value.
+ */
 @Data
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class FilteredRequest {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class GreaterEqual extends NumericBinaryFilter {
+    public GreaterEqual() {
+        super(FilterType.greater_equal);
+    }
 
+    @Builder
+    public GreaterEqual(String field, Number value) {
+        super(FilterType.greater_equal, field, value);
+    }
+
+    @Override
+    public void accept(FilterVisitor visitor) throws Exception {
+        visitor.visit(this);
+    }
 }

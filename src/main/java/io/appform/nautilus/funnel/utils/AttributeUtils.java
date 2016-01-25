@@ -33,7 +33,9 @@ public class AttributeUtils {
             if(!entry.getKey().equals("location")) {
                 Object value = entry.getValue();
                 final Class<?> clazz = value.getClass();
-                valid[0] &= (!ClassUtils.isPrimitiveOrWrapper(clazz)
+                valid[0] &= (
+                        !entry.getKey().matches(Constants.FIELD_REPLACEMENT_VALUE)
+                        && !ClassUtils.isPrimitiveOrWrapper(clazz)
                         && !(value instanceof String));
             }
 

@@ -12,21 +12,31 @@ from datetime import timedelta, date
 #activityTemplate = [[ "Home"], ["Mini", "Sedan", "Prime"], ["RideNow", "RideLater"], ["Confirm", "Cancel"]]
 activityTemplate = [[ "Home", "Search", "Notification"], ["BrowsePage", "SearchResults", "Product"], ["Product", "Home"], ["Checkout", "Home"]]
 
+categoryNames = ["Electronics", "Media", "Fashion"]
+cityNames = ["Kolkata", "Bangalore", "Delhi", "Chennai", "Mumbai"]
+
 def simulateUser():
     session = dict()
     session['sessionId'] = str(uuid.uuid4())
     session['sessionStartTime'] = long(time.time() * 1000)
+    sessionAttributes = dict()
+    sessionAttributes['category'] = random.choice(categoryNames)
+    session['attributes'] = sessionAttributes
     numSteps = random.randint(1,len(activityTemplate))
     #numSteps = 4
     activities = []
+    city = random.choice(cityNames)
     for i in range(0, numSteps):
         activity = dict()
         activity['timestamp'] = long(time.time() * 1000)
         activity['state'] = random.choice(activityTemplate[i])
+        activityAttributes = dict()
+        activityAttributes['city'] = city
+        activity['attributes'] = activityAttributes
         activities.append(activity)
     session['activities'] = activities
-    #print json.dumps(session)
-    print numSteps
+    print json.dumps(session)
+    #print numSteps
     r = requests.post(url="http://" + args.server + "/v1/activities/test", data=json.dumps(session), headers={'Content-type': 'application/json'})
     if r.status_code == requests.codes.ok:
         print "Saved"
