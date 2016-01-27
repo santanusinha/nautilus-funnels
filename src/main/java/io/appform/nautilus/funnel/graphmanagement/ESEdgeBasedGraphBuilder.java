@@ -122,7 +122,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                 Terms terms = aggregations.get("from_nodes");
 
                 for (Terms.Bucket fromBucket : terms.getBuckets()) {
-                    final String fromNodeName = fromBucket.getKey().toString();
+                    final String fromNodeName = PathUtils.transformBack(fromBucket.getKey().toString());
                     Terms toTerms = fromBucket.getAggregations().get("to_nodes");
                     for (Terms.Bucket toBucket : toTerms.getBuckets()) {
                         Terms paths = toBucket.getAggregations().get("pathBreakup");
@@ -130,11 +130,11 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                 paths.getBuckets()
                                         .stream()
                                         .map((Terms.Bucket pathBucket) -> FlatPath.builder()
-                                                .path(pathBucket.getKey().toString())
+                                                .path(PathUtils.transformBack(pathBucket.getKey().toString()))
                                                 .count(pathBucket.getDocCount())
                                                 .build())
                                         .collect(Collectors.toCollection(ArrayList::new));
-                        final String toNodeName = toBucket.getKey().toString();
+                        final String toNodeName = PathUtils.transformBack(toBucket.getKey().toString());
                         edges.add(GraphEdge
                                 .builder()
                                 .from(fromNodeName)
@@ -154,13 +154,14 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                 Aggregations aggregations = response.getAggregations();
                 Terms terms = aggregations.get("paths");
                 for (Terms.Bucket buckets : terms.getBuckets()) {
-                    final String flatPath = buckets.getKey().toString();
+                    final String flatPath = PathUtils.transformBack(buckets.getKey().toString());
                     final long count = buckets.getDocCount();
                     final String pathNodes[] = flatPath.split(Constants.PATH_STATE_SEPARATOR);
                     flatPathListBuilder.add(FlatPath.builder().path(flatPath).count(count).build());
                     for (final String pathNode : pathNodes) {
-                        if (!vertices.containsKey(pathNode)) {
-                            vertices.put(pathNode, GraphNode.builder().id(nodeCounter++).name(pathNode).build());
+                        final String original = PathUtils.transformBack(pathNode);
+                        if (!vertices.containsKey(original)) {
+                            vertices.put(pathNode, GraphNode.builder().id(nodeCounter++).name(original).build());
                         }
 
                     }
@@ -171,7 +172,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
 
 
             PathUtils.rankNodes(paths.stream()
-                    .map(flatPath -> flatPath.getPath())
+                    .map(FlatPath::getPath)
                     .collect(Collectors.toCollection(ArrayList::new)))
                     .entrySet().stream().forEach(rank -> {
                         String nodeName = rank.getKey();

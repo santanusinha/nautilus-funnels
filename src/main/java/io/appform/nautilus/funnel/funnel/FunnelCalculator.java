@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.utils;
+package io.appform.nautilus.funnel.funnel;
+
+import io.appform.nautilus.funnel.common.NautilusException;
+import io.appform.nautilus.funnel.model.support.Context;
 
 /**
- * A bunch of constanta
+ * Calculate funnels depending on stages specified.
  */
-public class Constants {
-    public static final String FIELD_VALIDATION_REGEX = "[a-zA-Z0-9\\-_]";
-    public static final String FIELD_REPLACEMENT_VALUE = "_";
-    public static final String SEPARATOR = "_--&--_";
-    public static final String PATH_STATE_SEPARATOR = "->";
-    public static final String TIMESTAMP_FIELD_NAME = "timestamp";
-    public static final String ATTRIBUTE_FIELD_NAME = "attributes";
-    public static final String NORMALIZED_PATH_FIELD_NAME = "normalizedPath";
-    public static final String GUARD = "%";
-
-
+public interface FunnelCalculator {
+    Funnel calculate(String tenant, Context context, FunnelRequest funnelRequest) throws Exception;
 }

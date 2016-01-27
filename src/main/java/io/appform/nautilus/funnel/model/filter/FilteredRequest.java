@@ -16,15 +16,42 @@
 
 package io.appform.nautilus.funnel.model.filter;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import io.dropwizard.util.Duration;
+import lombok.*;
+import org.joda.time.DateTime;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
+import java.util.List;
 
 @Data
-@NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class FilteredRequest {
+public abstract class FilteredRequest {
+    @NotNull
+    @Valid
+    private List<Filter> sessionFilters = Collections.emptyList();
 
+    @NotNull
+    @Valid
+    private List<Filter> stateFilters = Collections.emptyList();
+
+    private TimeWindow timeWindow = TimeWindow.builder()
+            .start(DateTime.now())
+            .duration(Duration.hours(-24))
+            .timeField("timestamp")
+            .build();
+
+    protected FilteredRequest() {
+
+    }
+
+    protected FilteredRequest(List<Filter> sessionFilters,
+                              List<Filter> stateFilters,
+                              TimeWindow timeWindow) {
+        this.sessionFilters = sessionFilters;
+        this.stateFilters = stateFilters;
+        this.timeWindow = timeWindow;
+    }
 }

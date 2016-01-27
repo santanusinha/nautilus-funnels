@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.utils;
+package io.appform.nautilus.funnel.funnel;
+
+import lombok.*;
 
 /**
- * A bunch of constanta
+ * A stage in the funnel.
  */
-public class Constants {
-    public static final String FIELD_VALIDATION_REGEX = "[a-zA-Z0-9\\-_]";
-    public static final String FIELD_REPLACEMENT_VALUE = "_";
-    public static final String SEPARATOR = "_--&--_";
-    public static final String PATH_STATE_SEPARATOR = "->";
-    public static final String TIMESTAMP_FIELD_NAME = "timestamp";
-    public static final String ATTRIBUTE_FIELD_NAME = "attributes";
-    public static final String NORMALIZED_PATH_FIELD_NAME = "normalizedPath";
-    public static final String GUARD = "%";
-
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@EqualsAndHashCode
+@ToString
+public class FunnelStage {
+    private String stage;
+    private int count;
 }

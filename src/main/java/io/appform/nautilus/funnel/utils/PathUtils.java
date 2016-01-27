@@ -107,4 +107,12 @@ public class PathUtils {
         return ranks;
     }
 
+    public static String transformBack(String state) {
+        return state.replaceAll(Constants.GUARD, "");
+    }
+
+    public static String transformName(String state) {
+        return String.format("%s%s%s", Constants.GUARD, state, Constants.GUARD);
+    }
+
 }

@@ -24,9 +24,9 @@ def simulateUser():
     session['attributes'] = sessionAttributes
     numSteps = random.randint(1,len(activityTemplate))
     #numSteps = 4
-    activities = []
     city = random.choice(cityNames)
     for i in range(0, numSteps):
+        activities = []
         activity = dict()
         activity['timestamp'] = long(time.time() * 1000)
         activity['state'] = random.choice(activityTemplate[i])
@@ -34,14 +34,14 @@ def simulateUser():
         activityAttributes['city'] = city
         activity['attributes'] = activityAttributes
         activities.append(activity)
-    session['activities'] = activities
-    print json.dumps(session)
-    #print numSteps
-    r = requests.post(url="http://" + args.server + "/v1/activities/test", data=json.dumps(session), headers={'Content-type': 'application/json'})
-    if r.status_code == requests.codes.ok:
-        print "Saved"
-    else:
-        print "Error running query: " + str(r)
+        session['activities'] = activities
+        print json.dumps(session)
+        #print numSteps
+        r = requests.post(url="http://" + args.server + "/v1/activities/test", data=json.dumps(session), headers={'Content-type': 'application/json'})
+        if r.status_code == requests.codes.ok:
+            print "Saved"
+        else:
+            print "Error running query: " + str(r)
         
 
 def createDocument(argv):

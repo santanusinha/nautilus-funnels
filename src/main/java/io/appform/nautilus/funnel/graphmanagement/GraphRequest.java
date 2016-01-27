@@ -17,6 +17,7 @@
 package io.appform.nautilus.funnel.graphmanagement;
 
 import io.appform.nautilus.funnel.model.filter.Filter;
+import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.filter.TimeWindow;
 import io.dropwizard.util.Duration;
 import lombok.*;
@@ -32,31 +33,15 @@ import java.util.List;
  */
 @NoArgsConstructor
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @ToString
-public class GraphRequest {
-
-    @NotNull
-    @Valid
-    private List<Filter> sessionFilters = Collections.emptyList();
-
-    @NotNull
-    @Valid
-    private List<Filter> stateFilters = Collections.emptyList();
-
-    private TimeWindow timeWindow = TimeWindow.builder()
-            .start(DateTime.now())
-            .duration(Duration.hours(-24))
-            .timeField("timestamp")
-            .build();
+public class GraphRequest extends FilteredRequest {
 
     @Builder
     public GraphRequest(@Singular List<Filter> sessionFilters,
                         @Singular List<Filter> stateFilters,
                         TimeWindow timeWindow) {
-        this.sessionFilters = sessionFilters;
-        this.stateFilters = stateFilters;
-        this.timeWindow = timeWindow;
+        super(sessionFilters, stateFilters, timeWindow);
     }
 
 /*    public static void main(String[] args) throws Exception {

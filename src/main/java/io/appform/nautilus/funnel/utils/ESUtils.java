@@ -16,11 +16,14 @@
 
 package io.appform.nautilus.funnel.utils;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
+import io.appform.nautilus.funnel.funnel.FunnelRequest;
 import io.appform.nautilus.funnel.graphmanagement.ESFilterGenerator;
 import io.appform.nautilus.funnel.graphmanagement.GraphRequest;
+import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import lombok.extern.slf4j.Slf4j;
@@ -96,15 +99,31 @@ public class ESUtils {
         return new ESFilterGenerator().build(operation.getFilters(), operation.getWindow());
     }*/
 
+    public static QueryBuilder query(FunnelRequest funnelRequest) throws Exception {
+        final String regex = RegexUtils.convertToRegex(funnelRequest.getStates());
+        log.info("Generated Regex: {}", regex);
+        BoolQueryBuilder queryBuilder = handle(funnelRequest);
+        queryBuilder.filter(
+                //QueryBuilders.hasChildQuery(TypeUtils.typeName(StateTransition.class,
+                //        QueryBuilders))
+                QueryBuilders.regexpQuery(Constants.NORMALIZED_PATH_FIELD_NAME, regex)
+        );
+        return queryBuilder;
+    }
+
     public static QueryBuilder query(GraphRequest graphRequest) throws Exception {
-        BoolQueryBuilder queryBuilder = new ESFilterGenerator().build(graphRequest.getSessionFilters());
-        if(null != graphRequest.getStateFilters() || !graphRequest.getStateFilters().isEmpty()) {
+        return handle(graphRequest);
+    }
+
+    private static BoolQueryBuilder handle(FilteredRequest filteredRequest) throws Exception {
+        BoolQueryBuilder queryBuilder = new ESFilterGenerator().build(filteredRequest.getSessionFilters());
+        if(null != filteredRequest.getStateFilters() || !filteredRequest.getStateFilters().isEmpty()) {
             queryBuilder.filter(
                     QueryBuilders.hasChildQuery(TypeUtils.typeName(StateTransition.class),
-                            new ESFilterGenerator().build(graphRequest.getStateFilters())));
+                            new ESFilterGenerator().build(filteredRequest.getStateFilters())));
         }
-        if(null != graphRequest.getTimeWindow()) {
-            queryBuilder.filter(new ESFilterGenerator().build(TimeWindowNormalizer.normalize(graphRequest.getTimeWindow())));
+        if(null != filteredRequest.getTimeWindow()) {
+            queryBuilder.filter(new ESFilterGenerator().build(TimeWindowNormalizer.normalize(filteredRequest.getTimeWindow())));
         }
         return queryBuilder;
     }
