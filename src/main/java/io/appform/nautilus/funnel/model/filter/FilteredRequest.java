@@ -17,7 +17,9 @@
 package io.appform.nautilus.funnel.model.filter;
 
 import io.dropwizard.util.Duration;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.joda.time.DateTime;
 
 import javax.validation.Valid;

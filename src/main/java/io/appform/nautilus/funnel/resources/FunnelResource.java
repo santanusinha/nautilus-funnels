@@ -18,7 +18,6 @@ package io.appform.nautilus.funnel.resources;
 
 import io.appform.nautilus.funnel.funnel.FunnelCalculator;
 import io.appform.nautilus.funnel.funnel.FunnelRequest;
-import io.appform.nautilus.funnel.graphmanagement.GraphRequest;
 import io.appform.nautilus.funnel.model.support.Context;
 import lombok.extern.slf4j.Slf4j;
 

@@ -16,7 +16,6 @@
 
 package io.appform.nautilus.funnel.resources;
 
-import io.appform.nautilus.funnel.common.NautilusException;
 import io.appform.nautilus.funnel.model.session.SessionActivitySet;
 import io.appform.nautilus.funnel.sessionmanagement.SessionActivityHandler;
 import lombok.extern.slf4j.Slf4j;

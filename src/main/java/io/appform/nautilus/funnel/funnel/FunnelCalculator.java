@@ -16,7 +16,6 @@
 
 package io.appform.nautilus.funnel.funnel;
 
-import io.appform.nautilus.funnel.common.NautilusException;
 import io.appform.nautilus.funnel.model.support.Context;
 
 /**

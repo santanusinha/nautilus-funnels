@@ -16,12 +16,7 @@
 
 package io.appform.nautilus.funnel.funnel;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import io.appform.nautilus.funnel.common.NautilusException;
-import io.appform.nautilus.funnel.elasticsearch.ESConnection;
-import io.appform.nautilus.funnel.model.graph.GraphNode;
-import io.appform.nautilus.funnel.model.session.FlatPath;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.utils.*;

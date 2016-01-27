@@ -19,13 +19,8 @@ package io.appform.nautilus.funnel.graphmanagement;
 import io.appform.nautilus.funnel.model.filter.Filter;
 import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.filter.TimeWindow;
-import io.dropwizard.util.Duration;
 import lombok.*;
-import org.joda.time.DateTime;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
 
 /**

@@ -18,7 +18,6 @@ package io.appform.nautilus.funnel.funnel;
 
 import lombok.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**

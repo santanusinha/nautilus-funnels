@@ -16,7 +16,6 @@
 
 package io.appform.nautilus.funnel.utils;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
