@@ -60,9 +60,12 @@ public class TenancyManagementResource {
 
     @GET
     @Path("/{tenant}/mappings")
-    public Object mappings(@PathParam("tenant") final String tenant) throws Exception {
+    public ApiResponse mappings(@PathParam("tenant") final String tenant) throws Exception {
         try {
-            return tenancyManager.mappings(tenant);
+            return ApiResponse.builder()
+                        .error(false)
+                        .data(tenancyManager.mappings(tenant))
+                        .build();
         } catch (Exception e) {
             log.error("Error getting tenants", e);
             throw new WebApplicationException(

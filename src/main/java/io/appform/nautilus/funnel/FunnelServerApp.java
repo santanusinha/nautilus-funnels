@@ -16,6 +16,7 @@
 
 package io.appform.nautilus.funnel;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.nautilus.funnel.administration.TenancyManager;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
@@ -43,6 +44,7 @@ import java.util.EnumSet;
 public class FunnelServerApp extends Application<FunnelServerConfiguration> {
     @Override
     public void run(FunnelServerConfiguration funnelServerConfiguration, Environment environment) throws Exception {
+        environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ESConnection esConnection = new ESConnection(funnelServerConfiguration.getElasticsearch());
         environment.lifecycle().manage(esConnection);
         final ObjectMapper objectMapper = environment.getObjectMapper();
