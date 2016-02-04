@@ -23,6 +23,7 @@ import io.appform.nautilus.funnel.common.NautilusException;
 import io.appform.nautilus.funnel.model.graph.Graph;
 import io.appform.nautilus.funnel.model.graph.GraphEdge;
 import io.appform.nautilus.funnel.model.graph.GraphNode;
+import io.appform.nautilus.funnel.model.graph.Paths;
 import io.appform.nautilus.funnel.model.session.FlatPath;
 import io.appform.nautilus.funnel.model.session.StateTransition;
 import io.appform.nautilus.funnel.model.support.Context;
@@ -103,7 +104,7 @@ public class ESGraphBuilder implements GraphBuilder {
             return Graph.builder()
                     .vertices(ImmutableList.copyOf(vertices.values()))
                     .edges(ImmutableList.copyOf(edges.values()))
-                    .paths(flatPathListBuilder.build())
+                    //.paths(flatPathListBuilder.build())
                     .build();
         }  catch (Exception e) {
             log.error("Error running grouping: ", e);
@@ -111,5 +112,10 @@ public class ESGraphBuilder implements GraphBuilder {
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
         }
 
+    }
+
+    @Override
+    public Paths build(String tenant, Context context, PathsRequest pathsRequest) throws Exception {
+        return null;
     }
 }

@@ -21,6 +21,7 @@ def simulateUser():
     session['sessionStartTime'] = long(time.time() * 1000)
     sessionAttributes = dict()
     sessionAttributes['category'] = random.choice(categoryNames)
+    sessionAttributes['time'] = session['sessionStartTime']
     session['attributes'] = sessionAttributes
     numSteps = random.randint(1,len(activityTemplate))
     #numSteps = 4

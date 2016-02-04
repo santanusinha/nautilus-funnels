@@ -22,6 +22,7 @@ import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.funnel.FunnelRequest;
 import io.appform.nautilus.funnel.graphmanagement.ESFilterGenerator;
 import io.appform.nautilus.funnel.graphmanagement.GraphRequest;
+import io.appform.nautilus.funnel.graphmanagement.PathsRequest;
 import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
@@ -112,6 +113,10 @@ public class ESUtils {
 
     public static QueryBuilder query(GraphRequest graphRequest) throws Exception {
         return handle(graphRequest);
+    }
+
+    public static QueryBuilder query(PathsRequest pathsRequest) throws Exception {
+        return handle(pathsRequest);
     }
 
     private static BoolQueryBuilder handle(FilteredRequest filteredRequest) throws Exception {

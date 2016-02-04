@@ -18,6 +18,7 @@ package io.appform.nautilus.funnel.resources;
 
 import io.appform.nautilus.funnel.graphmanagement.GraphBuilder;
 import io.appform.nautilus.funnel.graphmanagement.GraphRequest;
+import io.appform.nautilus.funnel.graphmanagement.PathsRequest;
 import io.appform.nautilus.funnel.model.support.Context;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,29 @@ public class GraphResource {
 
     @POST
     @Path("/{tenant}")
-    public ApiResponse response(@PathParam("tenant") final String tenant, @Valid final GraphRequest request) {
+    public ApiResponse calculateGraph(@PathParam("tenant") final String tenant, @Valid final GraphRequest request) {
+        try {
+            return ApiResponse.builder()
+                    .error(false)
+                    .data(graphBuilder.build(tenant, context, request))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error getting attribute mappings for {}", tenant, e);
+            throw new WebApplicationException(
+                    Response.status(500)
+                            .entity(ApiResponse
+                                    .builder()
+                                    .error(true)
+                                    .data(Collections.singletonMap("message", "Could not get attribute mappings"))
+                                    .build())
+                            .build()
+            );
+        }
+    }
+
+    @POST
+    @Path("/paths/{tenant}")
+    public ApiResponse calculatePaths(@PathParam("tenant") final String tenant, @Valid final PathsRequest request) {
         try {
             return ApiResponse.builder()
                     .error(false)

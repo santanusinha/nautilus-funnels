@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.graphmanagement;
+package io.appform.nautilus.funnel.model.graph;
 
-import io.appform.nautilus.funnel.model.graph.Graph;
-import io.appform.nautilus.funnel.model.graph.Paths;
-import io.appform.nautilus.funnel.model.support.Context;
+import io.appform.nautilus.funnel.model.session.FlatPath;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import java.util.List;
 
 /**
- * Builds a graph out of paths.
+ * The list of matched paths.
  */
-public interface GraphBuilder {
-    Graph build(final String tenant, Context context, GraphRequest graphRequest) throws Exception;
-    Paths build(final String tenant, Context context, PathsRequest pathsRequest) throws Exception;
+@Data
+@Builder
+@ToString
+@EqualsAndHashCode
+public class Paths {
+    private List<FlatPath> paths;
 }

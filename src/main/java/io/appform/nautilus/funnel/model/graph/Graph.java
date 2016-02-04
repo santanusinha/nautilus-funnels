@@ -19,11 +19,15 @@ package io.appform.nautilus.funnel.model.graph;
 import io.appform.nautilus.funnel.model.session.FlatPath;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 
 @Data
 @Builder
+@ToString
+@EqualsAndHashCode
 public class Graph {
     private List<GraphNode> vertices;
     private List<GraphEdge> edges;

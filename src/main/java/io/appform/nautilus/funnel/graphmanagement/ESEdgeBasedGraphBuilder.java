@@ -24,6 +24,7 @@ import io.appform.nautilus.funnel.common.NautilusException;
 import io.appform.nautilus.funnel.model.graph.Graph;
 import io.appform.nautilus.funnel.model.graph.GraphEdge;
 import io.appform.nautilus.funnel.model.graph.GraphNode;
+import io.appform.nautilus.funnel.model.graph.Paths;
 import io.appform.nautilus.funnel.model.session.FlatPath;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
@@ -194,6 +195,51 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     .build();
         } catch (Exception e) {
             log.error("Error running grouping: ", e);
+            throw new NautilusException(
+                    ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
+        }
+    }
+
+    @Override
+    public Paths build(String tenant, Context context, PathsRequest pathsRequest) throws Exception {
+        try {
+            SearchRequestBuilder stateTransitionSummary = context.getEsConnection()
+                    .client()
+                    .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
+                    .setQuery(ESUtils.query(pathsRequest))
+                    .setTypes(TypeUtils.typeName(Session.class))
+                    .setFetchSource(false)
+                    .setSize(0)
+                    .setIndicesOptions(IndicesOptions.lenientExpandOpen())
+                    .addAggregation(AggregationBuilders
+                            .terms("paths")
+                            .field("normalizedPath")
+                            .size(0)
+                    );
+            log.debug("State Query: {}", stateTransitionSummary);
+            SearchResponse response = stateTransitionSummary
+                    .execute()
+                    .actionGet();
+
+            ImmutableList.Builder<FlatPath> flatPathListBuilder = ImmutableList.builder();
+            {
+                Aggregations aggregations = response.getAggregations();
+                Terms terms = aggregations.get("paths");
+                for (Terms.Bucket buckets : terms.getBuckets()) {
+                    final String flatPath = PathUtils.transformBack(buckets.getKey().toString());
+                    final long count = buckets.getDocCount();
+                    flatPathListBuilder.add(FlatPath.builder().path(flatPath).count(count).build());
+                }
+            }
+
+            ImmutableList<FlatPath> paths = flatPathListBuilder.build();
+
+
+            return Paths.builder()
+                    .paths(paths)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error calculating paths: ", e);
             throw new NautilusException(
                     ErrorMessageTable.ErrorCode.ANALYTICS_ERROR, e);
         }
