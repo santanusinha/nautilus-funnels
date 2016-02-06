@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,5 +33,6 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 public class Paths {
+    private Collection<GraphNode> vertices;
     private List<FlatPath> paths;
 }

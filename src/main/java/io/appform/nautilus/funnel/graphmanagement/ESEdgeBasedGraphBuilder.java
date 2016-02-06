@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
  * Graph builder that aggregates the parents anc children based on transitions.
  */
 public class ESEdgeBasedGraphBuilder implements GraphBuilder {
-    private static final Logger log = LoggerFactory.getLogger(ESGraphBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(ESEdgeBasedGraphBuilder.class);
 
     @Override
     public Graph build(final String tenant, Context analyticsContext, GraphRequest graphRequest) throws Exception {
@@ -79,12 +80,6 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                                             .terms("to_nodes")
                                             .field("to")
                                             .size(0)
-                                            .subAggregation(
-                                                    AggregationBuilders
-                                                            .terms("pathBreakup")
-                                                            .field("normalizedPath")
-                                                            .size(0)
-                                            )
                             ));
             SearchRequestBuilder stateTransitionSummary = analyticsContext.getEsConnection()
                     .client()
@@ -126,22 +121,12 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     final String fromNodeName = PathUtils.transformBack(fromBucket.getKey().toString());
                     Terms toTerms = fromBucket.getAggregations().get("to_nodes");
                     for (Terms.Bucket toBucket : toTerms.getBuckets()) {
-                        Terms paths = toBucket.getAggregations().get("pathBreakup");
-                        List<FlatPath> pathList =
-                                paths.getBuckets()
-                                        .stream()
-                                        .map((Terms.Bucket pathBucket) -> FlatPath.builder()
-                                                .path(PathUtils.transformBack(pathBucket.getKey().toString()))
-                                                .count(pathBucket.getDocCount())
-                                                .build())
-                                        .collect(Collectors.toCollection(ArrayList::new));
                         final String toNodeName = PathUtils.transformBack(toBucket.getKey().toString());
                         edges.add(GraphEdge
                                 .builder()
                                 .from(fromNodeName)
                                 .to(toNodeName)
                                 .value(toBucket.getDocCount())
-                                .paths(pathList)
                                 .build());
                     }
                 }
@@ -191,7 +176,6 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
             return Graph.builder()
                     .vertices(verticesList)
                     .edges(edges)
-                    .paths(paths)
                     .build();
         } catch (Exception e) {
             log.error("Error running grouping: ", e);
@@ -222,13 +206,24 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
                     .actionGet();
 
             ImmutableList.Builder<FlatPath> flatPathListBuilder = ImmutableList.builder();
+            LinkedHashMap<String, GraphNode> vertices = Maps.newLinkedHashMap();
+
             {
                 Aggregations aggregations = response.getAggregations();
                 Terms terms = aggregations.get("paths");
+                int nodeCounter = 0;
                 for (Terms.Bucket buckets : terms.getBuckets()) {
                     final String flatPath = PathUtils.transformBack(buckets.getKey().toString());
                     final long count = buckets.getDocCount();
+                    final String pathNodes[] = flatPath.split(Constants.PATH_STATE_SEPARATOR);
                     flatPathListBuilder.add(FlatPath.builder().path(flatPath).count(count).build());
+                    for (final String pathNode : pathNodes) {
+                        final String original = PathUtils.transformBack(pathNode);
+                        if (!vertices.containsKey(original)) {
+                            vertices.put(pathNode, GraphNode.builder().id(nodeCounter++).name(original).build());
+                        }
+
+                    }
                 }
             }
 
@@ -236,6 +231,7 @@ public class ESEdgeBasedGraphBuilder implements GraphBuilder {
 
 
             return Paths.builder()
+                    .vertices(vertices.values())
                     .paths(paths)
                     .build();
         } catch (Exception e) {

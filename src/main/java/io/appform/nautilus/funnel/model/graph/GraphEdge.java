@@ -16,14 +16,14 @@
 
 package io.appform.nautilus.funnel.model.graph;
 
-import io.appform.nautilus.funnel.model.session.FlatPath;
 import lombok.*;
 
-import java.util.List;
-
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class GraphEdge {
     @Getter
     @Setter
@@ -37,28 +37,8 @@ public class GraphEdge {
     @Setter
     private long value;
 
-    @Getter
-    @Setter
-    private List<FlatPath> paths;
+    //@Getter
+    //@Setter
+    //private List<FlatPath> paths;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GraphEdge graphEdge = (GraphEdge) o;
-
-        if (from != graphEdge.from) return false;
-        return to == graphEdge.to;
-
-    }
-
-
-    @Override
-    public int hashCode() {
-        int result = from.hashCode();
-        result = 31 * result + to.hashCode();
-        result = 31 * result + (int) (value ^ (value >>> 32));
-        return result;
-    }
 }
