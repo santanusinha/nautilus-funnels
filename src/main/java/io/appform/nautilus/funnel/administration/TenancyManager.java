@@ -86,6 +86,10 @@ public class TenancyManager {
         return mappings;
     }
 
+    public List<String> states(final String tenant) {
+        return ESUtils.terms(tenant, StateTransition.class, "from", connection);
+    }
+
     private void updateMappingsForType(GetMappingsResponse response, ObjectCursor<String> index, Map<String, Map<String, String>> mappings, Class<?> entity) throws Exception {
         final String typeName = TypeUtils.typeName(entity);
         if(!mappings.containsKey(typeName)) {

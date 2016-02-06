@@ -17,6 +17,7 @@
 package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import io.appform.nautilus.funnel.elasticsearch.ESConfiguration;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.funnel.FunnelRequest;
@@ -26,17 +27,26 @@ import io.appform.nautilus.funnel.graphmanagement.PathsRequest;
 import io.appform.nautilus.funnel.model.filter.FilteredRequest;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.session.StateTransition;
+import io.appform.nautilus.funnel.model.support.Context;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -232,5 +242,23 @@ public class ESUtils {
         return builder;
     }
 
-
+    public static List<String> terms(final String tenant, Class<?> type, final String field, ESConnection connection) {
+        SearchResponse response = connection
+                .client()
+                .prepareSearch(ESUtils.getAllIndicesForTenant(tenant))
+                .setTypes(TypeUtils.typeName(type))
+                .setQuery(QueryBuilders.matchAllQuery())
+                .addAggregation(AggregationBuilders.terms("terms").field(field))
+                .execute()
+                .actionGet();
+        List<String> terms = Lists.newArrayList();
+        Terms termsAggResults = response.getAggregations().get("terms");
+        terms.addAll(termsAggResults.getBuckets()
+                        .stream()
+                        .map(Terms.Bucket::getKeyAsString)
+                        .map(state -> state.replaceAll(Constants.GUARD, ""))
+                        .collect(Collectors.toList()));
+        Collections.sort(terms);
+        return terms;
+    }
 }
