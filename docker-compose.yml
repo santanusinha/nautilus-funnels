@@ -8,8 +8,8 @@ elasticsearch:
 
 #nautilus compose
 nautilus:
-  container_name: nautilus-funnels
-  build: .
+  image: nautilus-funnels:0.0.1-SNAPSHOT
+#  build: .
   ports:
    - "8080:8080"
    - "8081:8081"

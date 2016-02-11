@@ -20,6 +20,7 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import io.appform.nautilus.funnel.elasticsearch.ESConnection;
 import io.appform.nautilus.funnel.model.session.Session;
@@ -87,7 +88,9 @@ public class TenancyManager {
     }
 
     public List<String> states(final String tenant) {
-        return ESUtils.terms(tenant, StateTransition.class, "from", connection);
+        List<String> from = ESUtils.terms(tenant, StateTransition.class, "from", connection);
+        List<String> to = ESUtils.terms(tenant, StateTransition.class, "to", connection);
+        return ImmutableSet.<String>builder().addAll(from).addAll(to).build().asList();
     }
 
     private void updateMappingsForType(GetMappingsResponse response, ObjectCursor<String> index, Map<String, Map<String, String>> mappings, Class<?> entity) throws Exception {

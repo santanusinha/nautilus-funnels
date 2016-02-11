@@ -17,8 +17,7 @@
 package io.appform.nautilus.funnel.resources;
 
 import io.appform.nautilus.funnel.administration.TenancyManager;
-import io.appform.nautilus.funnel.model.session.StateTransition;
-import io.appform.nautilus.funnel.utils.ESUtils;
+import io.appform.nautilus.funnel.tenant.TenantInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.*;
@@ -77,8 +76,7 @@ public class TenancyManagementResource {
                                 .error(true)
                                 .data(Collections.singletonMap("message", "Could not get tenants"))
                                 .build())
-                        .build()
-            );
+                        .build());
         }
     }
 
@@ -92,6 +90,31 @@ public class TenancyManagementResource {
                                     tenancyManager.states(tenant)))
                             .build();
         } catch (Exception e) {
+            log.error("Error getting states {}", tenant, e);
+            throw new WebApplicationException(
+                    Response.status(500)
+                            .entity(ApiResponse
+                                    .builder()
+                                    .error(true)
+                                    .data(Collections.singletonMap("message", "Could not get states for tenant"))
+                                    .build())
+                            .build()
+            );
+        }
+    }
+
+    @GET
+    @Path("/{tenant}/details")
+    public ApiResponse details(@PathParam("tenant") final String tenant) {
+        try {
+            TenantInfo.TenantInfoBuilder builder = TenantInfo.builder();
+            builder.states(tenancyManager.states(tenant));
+            builder.attributes(tenancyManager.mappings(tenant));
+            return ApiResponse.builder()
+                        .error(false)
+                        .data(builder.build())
+                        .build();
+        }  catch (Exception e) {
             log.error("Error getting states {}", tenant, e);
             throw new WebApplicationException(
                     Response.status(500)
