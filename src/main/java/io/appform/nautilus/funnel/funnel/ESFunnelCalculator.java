@@ -17,6 +17,7 @@
 package io.appform.nautilus.funnel.funnel;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.appform.nautilus.funnel.model.session.Session;
 import io.appform.nautilus.funnel.model.support.Context;
 import io.appform.nautilus.funnel.utils.*;
@@ -28,7 +29,9 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Funnel calculation based on ES Aggregation
@@ -60,18 +63,23 @@ public class ESFunnelCalculator implements FunnelCalculator {
         Terms terms = aggregations.get("paths");
         Map<String, Long> funnelStages = Maps.newLinkedHashMap();
         funnelRequest.getStates().stream().forEach(stage -> funnelStages.put(stage, 0L));
-        Map<String, String> regexes = RegexUtils.separateRegexes(funnelRequest.getStates());
+        Map<String, List<String>> regexes = RegexUtils.separateRegexes(funnelRequest.getStates());
         for (Terms.Bucket buckets : terms.getBuckets()) {
             final String flatPath = buckets.getKey().toString();
             final long count = buckets.getDocCount();
+            System.out.print(PathUtils.transformBack(flatPath));
+            Set<String> tracker = Sets.newHashSet();
             regexes.entrySet().stream().filter(entry -> flatPath.matches(entry.getKey())).forEach(entry -> {
-                final String[] stage = PathUtils.transformBack(flatPath).split(Constants.PATH_STATE_SEPARATOR);
-                for (final String key : stage) {
-                    if (funnelStages.containsKey(key)) {
-                        funnelStages.put(key, funnelStages.get(key) + count);
-                    }
-                }
+                System.out.print(entry.getKey() + " ");
+                final List<String> stage = regexes.get(entry.getKey());
+                stage.stream()
+                        .filter(key -> funnelStages.containsKey(key) && !tracker.contains(key))
+                        .forEach(key -> {
+                            funnelStages.put(key, funnelStages.get(key) + count);
+                            tracker.add(key);
+                        });
             });
+            System.out.println();
         }
         return Funnel.builder()
                 .stages(funnelStages)

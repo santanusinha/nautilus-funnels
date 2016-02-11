@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +47,11 @@ public class RegexUtils {
         return String.format(".*(%s)", regex);
     }
 
-    public static Map<String, String> separateRegexes(List<String> stages) {
+    public static Map<String, List<String>> separateRegexes(List<String> stages) {
         String regex = "";
-        Map<String, String> segments = Maps.newHashMap();
+        Map<String, List<String>> segments = Maps.newHashMap();
         int i = 0;
+        List<String> items = Lists.newArrayList();
         for(String stage: stages) {
             if(0 == i) {
                 regex = String.format("%s.*", PathUtils.transformName(stage));
@@ -58,7 +60,8 @@ public class RegexUtils {
                 regex = String.format("%s%s.*", regex, PathUtils.transformName(stage));
             }
             i++;
-            segments.put(String.format(".*%s", regex), stage);
+            items.add(stage);
+            segments.put(String.format(".*%s", regex), new ArrayList<>(items));
         }
         return segments;
     }
