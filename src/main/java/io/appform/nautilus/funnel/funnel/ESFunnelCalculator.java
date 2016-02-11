@@ -55,7 +55,7 @@ public class ESFunnelCalculator implements FunnelCalculator {
                         .field(Constants.NORMALIZED_PATH_FIELD_NAME)
                         .size(0)
                 );
-        log.info("Generated query for filter request: {}", request);
+        log.debug("Generated query for filter request: {}", request);
         SearchResponse response = request
                 .execute()
                 .actionGet();
@@ -67,10 +67,8 @@ public class ESFunnelCalculator implements FunnelCalculator {
         for (Terms.Bucket buckets : terms.getBuckets()) {
             final String flatPath = buckets.getKey().toString();
             final long count = buckets.getDocCount();
-            System.out.print(PathUtils.transformBack(flatPath));
             Set<String> tracker = Sets.newHashSet();
             regexes.entrySet().stream().filter(entry -> flatPath.matches(entry.getKey())).forEach(entry -> {
-                System.out.print(entry.getKey() + " ");
                 final List<String> stage = regexes.get(entry.getKey());
                 stage.stream()
                         .filter(key -> funnelStages.containsKey(key) && !tracker.contains(key))
@@ -79,7 +77,6 @@ public class ESFunnelCalculator implements FunnelCalculator {
                             tracker.add(key);
                         });
             });
-            System.out.println();
         }
         return Funnel.builder()
                 .stages(funnelStages)
