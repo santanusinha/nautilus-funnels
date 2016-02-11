@@ -7,3 +7,5 @@
 data/*
 dependency-reduced-pom.xml
 target/*
+*/target/**
+target
