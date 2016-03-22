@@ -37,8 +37,8 @@ public class PathUtilsTest {
     @Test
     public void testNormalise() throws Exception {
         List<String> input = ImmutableList.of("1", "22", "31", "49", "22", "22", "31", "49", "31", "49", "2", "25",
-                                            "1", "2", "3", "4", "2", "2", "3", "4", "3", "4", "2", "1", "2", "3", "4",
-                                            "2", "2", "3", "4", "3", "4", "2");
+                "1", "2", "3", "4", "2", "2", "3", "4", "3", "4", "2", "1", "2", "3", "4",
+                "2", "2", "3", "4", "3", "4", "2");
         List<String> output = PathUtils.normalise(new ArrayList<String>(input));
         log.debug("INPUT: " + Joiner.on("->").join(input));
         log.debug("OUTPUT: " + Joiner.on("->").join(output));
@@ -47,7 +47,7 @@ public class PathUtilsTest {
 
     @Test
     public void testRankNodes() {
-        Map<String, Integer> expectedRanks = ImmutableMap.<String, Integer> builder()
+        Map<String, Integer> expectedRanks = ImmutableMap.<String, Integer>builder()
                 .put("A", 0)
                 .put("C", 0)
                 .put("D", 0)
@@ -60,5 +60,15 @@ public class PathUtilsTest {
         log.debug("expectedRanks: " + Joiner.on(",").withKeyValueSeparator("=").join(expectedRanks));
         log.debug("ranks:" + Joiner.on(",").withKeyValueSeparator("=").join(ranks));
         assertEquals(expectedRanks, ranks);
+    }
+
+    @Test
+    public void testTransformBack() {
+        assertEquals("A", PathUtils.transformBack("%A%"));
+    }
+
+    @Test
+    public void testTransformName() {
+        assertEquals("%A%", PathUtils.transformName("A"));
     }
 }

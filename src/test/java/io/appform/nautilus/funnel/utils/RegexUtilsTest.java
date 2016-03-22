@@ -34,13 +34,8 @@ public class RegexUtilsTest {
 
     @Test
     public void testConvertToRegex() throws Exception {
-
-    }
-
-    @Test
-    public void testRegexes() throws Exception {
         String regex = RegexUtils.convertToRegex(ImmutableList.of("A", "B", "C"));
-        System.out.println(regex);
+        Assert.assertEquals(".*((%A%.*)|(\\1%B%.*)|(\\2%C%.*))", regex);
     }
 
     @Test

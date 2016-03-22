@@ -17,7 +17,6 @@
 package io.appform.nautilus.funnel.utils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.util.List;
@@ -27,34 +26,30 @@ import java.util.Map;
  * Created by santanu.s on 26/01/16.
  */
 public class RegexUtils {
-    public static String convertToRegex(List<String> stages) {
+    public static String convertToRegex(final List<String> stages) {
         Preconditions.checkNotNull(stages);
         Preconditions.checkArgument(!stages.isEmpty());
         String regex = "";
-        List<String> segments = Lists.newArrayList();
         int i = 0;
-        for(String stage: stages) {
-            if(0 == i) {
+        for (String stage : stages) {
+            if (0 == i) {
                 regex = String.format("(%s.*)", PathUtils.transformName(stage));
-            }
-            else {
+            } else {
                 regex = String.format("%s|(\\%d%s.*)", regex, i, PathUtils.transformName(stage));
             }
             i++;
-            segments.add(String.format(".*(%s)", regex));
         }
         return String.format(".*(%s)", regex);
     }
 
-    public static Map<String, String> separateRegexes(List<String> stages) {
+    public static Map<String, String> separateRegexes(final List<String> stages) {
         String regex = "";
         Map<String, String> segments = Maps.newHashMap();
         int i = 0;
-        for(String stage: stages) {
-            if(0 == i) {
+        for (String stage : stages) {
+            if (0 == i) {
                 regex = String.format("%s.*", PathUtils.transformName(stage));
-            }
-            else {
+            } else {
                 regex = String.format("%s%s.*", regex, PathUtils.transformName(stage));
             }
             i++;
