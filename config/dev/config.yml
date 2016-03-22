@@ -39,7 +39,7 @@ logging:
 #      maxFileSize: 10MB
 
 elasticsearch:
-  cluster: nautilus
+  cluster: elasticsearch
   embedded: false
   hosts:
   - localhost

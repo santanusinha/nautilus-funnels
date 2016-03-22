@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.nautilus.funnel.model.core;
+package io.appform.nautilus.funnel.tenant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
